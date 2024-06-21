@@ -35,6 +35,10 @@ class sharedInfo {
             sharedPreferences.edit().clear().apply()
         }
 
+        fun removeKey(key: String){
+            sharedPreferences.edit().remove(key).apply()
+        }
+
         fun exists(key: String): Boolean{
             return sharedPreferences.contains(key)
         }

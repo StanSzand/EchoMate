@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
 
 
         sharedInfo.initialize(applicationContext)
-        sharedInfo.clearPreferences()
+        //sharedInfo.clearPreferences()
 
         if (sharedInfo.exists("Name")) {
             AIBackend.changeName(sharedInfo.getDataString("Name"))
@@ -63,7 +63,13 @@ class MainActivity : ComponentActivity() {
             AIBackend.resetSetup()
         }
 
+        if (sharedInfo.exists("ContextSwitch")){
+            val value = sharedInfo.getDataString("ContextSwitch").toBoolean()
+            AIBackend.enableContext(value)
 
+        }else{
+            AIBackend.enableContext(false)
+        }
 
 
         // Set up RecyclerView

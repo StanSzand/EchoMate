@@ -268,6 +268,39 @@
             </TextView>
 
         </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/warningLayout"
+            android:id="@+id/experimantalLayout"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/experimentalExtendedHistory"
+                android:textSize="18sp"
+                android:id="@+id/extendedHistorySwitchText"
+                android:layout_toStartOf="@id/extendedHistorySwitch"
+                android:layout_centerInParent="true"
+                android:textAlignment="center"
+                android:padding="8dp">
+
+            </TextView>
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/extendedHistorySwitch"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </Switch>
+
+        </RelativeLayout>
 
         </RelativeLayout>
     </RelativeLayout>

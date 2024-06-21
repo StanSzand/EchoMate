@@ -6,11 +6,16 @@
     <string name="apiKeyOpenrouter">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</string>
     <string name="resetSetupText">Press the button on the right to reset the setup</string>
     <string name="resetModelText">Press the button on the right to reset the model</string>
+    <string name="experimentalExtendedHistory">Enable experimental extended history using AI</string>
     <string-array name="models">
         <item>Change the model using the options below:</item>
         <item>microsoft/wizardlm-2-7b</item>
         <item>mistralai/mistral-7b-instruct</item>
         <item>lynn/soliloquy-l3</item>
+        <item>google/gemma-7b-it:free</item>
+        <item>microsoft/phi-3-mini-128k-instruct:free</item>
+        <item>huggingfaceh4/zephyr-7b-beta:free</item>
+        <item>meta-llama/llama-3-8b-instruct:free</item>
     </string-array>
 
 </resources>

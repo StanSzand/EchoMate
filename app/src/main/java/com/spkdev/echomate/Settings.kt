@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Spinner
+import android.widget.Switch
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 
@@ -40,9 +41,8 @@ class Settings: ComponentActivity() {
         val modelsArray = resources.getStringArray(R.array.models)
 
 
-
-
-
+        //switch
+        val contextSwitch = findViewById<Switch>(R.id.extendedHistorySwitch)
 
 
 
@@ -70,6 +70,7 @@ class Settings: ComponentActivity() {
             Toast.makeText(this, "Changed setup", Toast.LENGTH_SHORT).show()
             newSetup.text.clear()
         }
+
         //resetting the setup
         resetSetup.setOnClickListener {
             AIBackend.resetSetup()
@@ -106,17 +107,42 @@ class Settings: ComponentActivity() {
 
         //changing the model manually
         modelChangeButton.setOnClickListener {
-            val newModelString = modelChangeText.text.toString()
-            AIBackend.changeModel(newModelString)
-            sharedInfo.saveDataString("Model", newModelString)
-            Toast.makeText(this, "Model has been changed to $newModelString", Toast.LENGTH_SHORT).show()
-            modelChangeText.text.clear()
+//            val newModelString = modelChangeText.text.toString()
+//            AIBackend.changeModel(newModelString)
+//            sharedInfo.saveDataString("Model", newModelString)
+//            Toast.makeText(this, "Model has been changed to $newModelString", Toast.LENGTH_SHORT).show()
+//            modelChangeText.text.clear()
+            Toast.makeText(this@Settings, "This option is disabled for now.", Toast.LENGTH_LONG).show()
+
         }
         //resetting the model
         resetModelButton.setOnClickListener {
             AIBackend.resetModel()
             Toast.makeText(this, "Model has been reset", Toast.LENGTH_SHORT).show()
         }
+
+        //experimental context switch added
+        contextSwitch.setOnClickListener{
+            if (contextSwitch.isChecked){
+                AIBackend.enableContext(true)
+                Toast.makeText(this, "WARNING - this feature is experimental", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "IT WILL NOT WORK PROPERLY ON MOST (IF ANY) MODELS", Toast.LENGTH_LONG).show()
+            }else{
+                AIBackend.enableContext(false)
+            }
+        }
+
+
+        if (sharedInfo.exists("ContextSwitch")){
+            val value = sharedInfo.getDataString("ContextSwitch").toBoolean()
+            AIBackend.enableContext(value)
+
+            contextSwitch.setChecked(value)
+        }else{
+            AIBackend.enableContext(false)
+        }
+
+
 
     }
 
