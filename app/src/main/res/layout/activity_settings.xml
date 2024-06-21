@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:id="@+id/topBar"
+        android:background="@color/top_bar_color"
+        android:padding="8dp">
+
+        <ImageButton
+            android:id="@+id/goBackButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/back_arrow"
+            android:layout_alignParentStart="true"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:padding="8dp"
+            android:layout_marginStart="10dp"
+            android:tint="@color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:id="@+id/settings"
+            android:text="SETTINGS"
+            android:textSize="26sp"
+            android:textColor="@color/white">
+
+
+        </TextView>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topBar">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/nameSetupLayout"
+            tools:ignore="UselessParent">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/nameSetup"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your Name here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeName">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeName"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"
+                />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/setupLayout"
+            tools:ignore="UselessParent"
+            android:layout_below="@id/nameSetupLayout">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newSetup"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new Setup here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeSetup">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeSetup"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/setupLayout"
+            android:id="@+id/resetSetupLayout"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resetSetupText"
+                android:textSize="18sp"
+                android:id="@+id/resetText"
+                android:layout_toStartOf="@id/resetSetupButton"
+                android:layout_centerInParent="true"
+                android:padding="8dp">
+
+            </TextView>
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/loop_vector"
+                android:background="@null"
+                android:id="@+id/resetSetupButton"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </ImageButton>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/modelChangeLayoutDropdown"
+            android:layout_below="@id/resetSetupLayout">
+
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/spinnerModels"
+                android:padding="8dp"
+                android:layout_toStartOf="@id/confirmSpinnerModel"
+                android:layout_centerInParent="true"
+                tools:listitem="@layout/support_simple_spinner_dropdown_item">
+
+            </Spinner>
+
+            <ImageButton
+                android:id="@+id/confirmSpinnerModel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/modelChangeLayout"
+            android:layout_below="@id/modelChangeLayoutDropdown">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newModel"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new Model here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeModel">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeModel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/modelChangeLayout"
+            android:id="@+id/resetModelLayout"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resetModelText"
+                android:textSize="18sp"
+                android:id="@+id/resetModelText"
+                android:layout_toStartOf="@id/resetModelButton"
+                android:layout_centerInParent="true"
+                android:padding="8dp">
+
+            </TextView>
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/loop_vector"
+                android:background="@null"
+                android:id="@+id/resetModelButton"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </ImageButton>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/resetModelLayout"
+            android:id="@+id/warningLayout"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/warningText"
+                android:text="WARNING, only change the setup or model if you know what you are doing"
+                android:textAlignment="center"
+                android:textSize="30sp"
+                android:textColor="#fa1100">
+
+
+            </TextView>
+
+        </RelativeLayout>
+
+        </RelativeLayout>
+    </RelativeLayout>
+
+
+

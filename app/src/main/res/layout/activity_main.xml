@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:id="@+id/topBar"
+        android:background="@color/top_bar_color"
+        android:padding="2dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/chat_vector"
+            android:id="@+id/topLeftIcon"
+            android:padding="8dp"
+            android:tint="@color/white"> </ImageView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/topLeftIcon"
+            android:text="EchoMate"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textSize="26sp">
+
+        </TextView>
+
+        <ImageButton
+            android:id="@+id/openOptions"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/settings_wheel"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:padding="8dp"
+            android:layout_marginStart="10dp"
+            android:tint="@color/white"/>
+
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_layout"
+        android:layout_below="@id/topBar"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical">
+
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:padding="8dp"
+        android:id="@+id/bottom_layout">
+
+
+        <EditText
+            android:id="@+id/textInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:elevation="4dp"
+            android:layout_margin="10dp"
+
+            android:autofillHints="text"
+            android:background="@drawable/rounded_textbox"
+            android:textAlignment="textStart"
+            android:hint='@string/textInput'
+            android:inputType="text"
+            android:layout_toStartOf="@id/sendRequest"/>
+
+        <ImageButton
+            android:id="@+id/sendRequest"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/icon_send"
+            android:text="@string/sendButton"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:padding="8dp"
+            android:layout_marginStart="10dp"/>
+
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

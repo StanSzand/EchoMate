@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">EchoMate</string>
+    <string name="sendButton">SEND</string>
+    <string name="textInput">Write your request here</string>
+    <string name="response">Please send a request</string>
+    <string name="apiKeyOpenrouter">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</string>
+    <string name="resetSetupText">Press the button on the right to reset the setup</string>
+    <string name="resetModelText">Press the button on the right to reset the model</string>
+    <string-array name="models">
+        <item>Change the model using the options below:</item>
+        <item>microsoft/wizardlm-2-7b</item>
+        <item>mistralai/mistral-7b-instruct</item>
+        <item>lynn/soliloquy-l3</item>
+    </string-array>
+
+</resources>
