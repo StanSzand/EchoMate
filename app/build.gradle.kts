@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,5 +82,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.picasso)
+
 
 }

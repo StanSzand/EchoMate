@@ -7,15 +7,14 @@
     <string name="resetSetupText">Press the button on the right to reset the setup</string>
     <string name="resetModelText">Press the button on the right to reset the model</string>
     <string name="experimentalExtendedHistory">Enable experimental extended history using AI</string>
+    <string name="localModel">Enable usage of local models</string>
     <string-array name="models">
         <item>Change the model using the options below:</item>
-        <item>microsoft/wizardlm-2-7b</item>
-        <item>mistralai/mistral-7b-instruct</item>
-        <item>lynn/soliloquy-l3</item>
-        <item>google/gemma-7b-it:free</item>
-        <item>microsoft/phi-3-mini-128k-instruct:free</item>
-        <item>huggingfaceh4/zephyr-7b-beta:free</item>
-        <item>meta-llama/llama-3-8b-instruct:free</item>
+        <item>deepseek/deepseek-chat</item>
+        <item>sao10k/l3.3-euryale-70b</item>
+        <item>nousresearch/hermes-3-llama-3.1-405b</item>
+        <item>inflatebot/mn-mag-mell-r1</item>
+        <item>deepseek/deepseek-r1</item>
     </string-array>
 
 </resources>
