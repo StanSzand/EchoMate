@@ -10,10 +10,10 @@
     <string name="localModel">Enable usage of local models</string>
     <string-array name="models">
         <item>Change the model using the options below:</item>
-        <item>deepseek/deepseek-chat</item>
-        <item>sao10k/l3.3-euryale-70b</item>
+        <item>deepseek/deepseek-chat-v3-0324</item>
+        <item>deepseek/deepseek-r1-0528</item>
         <item>nousresearch/hermes-3-llama-3.1-405b</item>
-        <item>inflatebot/mn-mag-mell-r1</item>
+        <item>qwen/qwen3-30b-a3b</item>
         <item>deepseek/deepseek-r1</item>
     </string-array>
 

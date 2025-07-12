@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
@@ -31,53 +32,52 @@ class ChatAdapter(private val messages: List<ChatMessage>) :
 
     // Add the formatText function here
     fun formatText(input: String, context: Context): Spannable {
-        // Replace literal "\n" and "\r" with an empty string
         val sanitizedInput = input.replace("\\n", "").replace("\\r", "")
 
-        // Copy of the sanitized input to calculate the correct indices after removing *
-        val originalInput = sanitizedInput
-        val cleanedInput = sanitizedInput.replace("*", "")
-        val spannable = SpannableString(cleanedInput)
-
         val regex = "\\*(.*?)\\*".toRegex()
-        val matches = regex.findAll(originalInput)
+        val spannableBuilder = SpannableStringBuilder()
 
-        var offset = 0
+        var lastIndex = 0
 
-        matches.forEach { match ->
-            val originalStart = match.range.first
-            val originalEnd = match.range.last
+        for (match in regex.findAll(sanitizedInput)) {
+            // Append text before the match
+            spannableBuilder.append(sanitizedInput.substring(lastIndex, match.range.first))
 
-            // Calculate the adjusted start and end indices
-            val start = originalStart - offset
-            val end = originalEnd - 1 - offset
+            // This is the actual word inside *...*
+            val italicText = match.groupValues[1]
 
-            // Ensure the indices are within bounds
-            if (start >= 0 && end <= spannable.length) {
-                // Apply italic style
-                spannable.setSpan(
-                    StyleSpan(Typeface.ITALIC),
-                    start,
-                    end,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
+            // Mark start index of where this word will be in final text
+            val start = spannableBuilder.length
+            spannableBuilder.append(italicText)
+            val end = spannableBuilder.length
 
-                // Apply gray color
-                val grayColor = ContextCompat.getColor(context, android.R.color.black)
-                spannable.setSpan(
-                    ForegroundColorSpan(grayColor),
-                    start,
-                    end,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
+            // Apply styles
+            spannableBuilder.setSpan(
+                StyleSpan(Typeface.ITALIC),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
 
-            // Adjust offset for the removed * characters
-            offset += 2
+            val grayColor = ContextCompat.getColor(context, android.R.color.black)
+            spannableBuilder.setSpan(
+                ForegroundColorSpan(grayColor),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            lastIndex = match.range.last + 1
         }
 
-        return spannable
+        // Append the rest of the text
+        if (lastIndex < sanitizedInput.length) {
+            spannableBuilder.append(sanitizedInput.substring(lastIndex))
+        }
+
+        return spannableBuilder
     }
+
 
 
 

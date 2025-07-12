@@ -24,7 +24,10 @@ import android.widget.TextView
 import com.squareup.picasso.Picasso
 
 import androidx.appcompat.widget.SearchView // Ensure correct import
-
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class JsonPreviewActivity : AppCompatActivity() {
@@ -131,9 +134,54 @@ class JsonPreviewActivity : AppCompatActivity() {
 
         savedUriString?.let {
             val savedUri = Uri.parse(it)
-            loadJsonFilesFromFolder(savedUri)
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    val items = loadJsonItemsFromFolderInBackground(savedUri)
+                    withContext(Dispatchers.Main) {
+                        jsonItems.clear()
+                        jsonItems.addAll(items)
+                        currentPage = 0
+                        loadNextPage()
+                    }
+                }
+            }
         }
     }
+
+    private fun loadJsonItemsFromFolderInBackground(folderUri: Uri): List<JsonItem> {
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+            folderUri, DocumentsContract.getTreeDocumentId(folderUri)
+        )
+
+        val fileInfoList = mutableListOf<Pair<Long, JsonItem>>()
+
+        contentResolver.query(
+            childrenUri,
+            arrayOf(
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_LAST_MODIFIED
+            ),
+            null, null, null
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val documentId = cursor.getString(0)
+                val documentName = cursor.getString(1)
+                val lastModified = cursor.getLong(2)
+                val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId)
+
+                if (documentName.endsWith(".json")) {
+                    val jsonContent = readTextFromUri(documentUri)
+                    val jsonItem = parseJsonToItem(jsonContent, documentName)
+                    fileInfoList.add(Pair(lastModified, jsonItem))
+                }
+            }
+        }
+
+        fileInfoList.sortByDescending { it.first }
+        return fileInfoList.map { it.second }
+    }
+
 
 
 

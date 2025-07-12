@@ -264,6 +264,7 @@ class Settings : ComponentActivity() {
             val newContextSize = newContext.text.toString()
             AIBackend.changeContextLength(newContextSize)
             Toast.makeText(this, "Changed context length to $newContextSize", Toast.LENGTH_LONG).show()
+            newContext.text.clear()
         }
 
         tempButton.setOnClickListener {
@@ -285,6 +286,10 @@ class Settings : ComponentActivity() {
         private val alternateGreetingsArray = mutableListOf<String>()
         private var characterName = ""
 
+        fun countAlternateGreetings(): Int{
+            return alternateGreetingsArray.size
+        }
+
         // Function to add an alternate greeting
         fun addAlternateGreeting(index: Int): String {
             // Check if the index is valid and below 9
@@ -297,6 +302,7 @@ class Settings : ComponentActivity() {
                         .replace("\"", "'") // Escape quotes
                     //AIBackend.removeEntry()
                     //AIBackend.addEntry("user", "Let's begin.")
+
                     AIBackend.addEntry("assistant", alternateGreeting)
                     Log.d("AlternateGreeting", "Added alternate greeting: $alternateGreeting")
                     return alternateGreeting
@@ -384,11 +390,12 @@ class Settings : ComponentActivity() {
             loadAlternateGreetings(JSONArray(), name, firstMessage) // Pass an empty array if no alternate greetings
         }
 
-        return ("You are a character roleplay assistant. Always stay in character. " +
+        return ("You are a to act as $name. Always stay in character and keep your messages not too long but also not too short unless stated otherwise. If user sends a message with [] brackets, its an instruction for you not the character " +
                 "Here is the character you need to play: " +
-                "You are $name, $description " +
-                "Scenario: $scenario"+
-                "Personality: $personality")
+                ", You are $name, $description " +
+                ", Scenario: $scenario"+
+                ", Personality: $personality" +
+                ", you are to keep actions and thoughts in asteriks.")
             .replace("\"", "\\\"").replace("\\r", "")
     }
 

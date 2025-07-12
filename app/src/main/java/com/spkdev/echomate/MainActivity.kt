@@ -23,7 +23,7 @@ import java.io.FileWriter
 import java.io.IOException
 
 
-class MainActivity : ComponentActivity() {
+class  MainActivity : ComponentActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatAdapter
@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
         sendRequestButton.setOnClickListener {
             val messageText = requestTextField.text.toString()
             try{
-                if(messageText.toInt() in 0..8 ) {
+                if(messageText.toInt() in 0.. Settings.countAlternateGreetings() ) {
                     val message = Settings.addAlternateGreeting(messageText.toInt() - 1)
                     addMessage(ChatMessage(message, false))
                     requestTextField.text.clear()
