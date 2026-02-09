@@ -10,4 +10,16 @@
     <color name="chat_color_sender">#1E88E5</color>
     <color name="chat_color_receiver">#7CB342</color>
     <color name="top_bar_color">#000142</color>
+    <color name="yellow">#FFC107</color>
+    <color name="bg_surface">#F5F7FA</color>
+    <color name="primary">#2F6FED</color>
+    <color name="secondary">#5C6BC0</color>
+    <color name="on_surface">#1B1B1F</color>
+    <color name="on_surface_secondary">#4A4F57</color>
+    <color name="hint_color">#8C93A1</color>
+    <color name="top_bar_divider">#E0E0E0</color>
+    <color name="danger">#C70A0A</color>
+    <color name="ripple_light">#33FFFFFF</color>
+    <color name="blue">#A1CAF1</color>
+
 </resources>
