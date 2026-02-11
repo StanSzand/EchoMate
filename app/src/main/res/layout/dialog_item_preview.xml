@@ -1,6 +1,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:fillViewport="true"
     android:padding="16dp">
 
     <LinearLayout
@@ -8,70 +9,67 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Container for image and back button -->
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="220dp">
 
-            <!-- ImageView -->
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter" />
+                android:contentDescription="Character avatar"
+                android:scaleType="centerCrop" />
 
-            <!-- Back Button in top left corner -->
             <ImageButton
                 android:id="@+id/buttonBack"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:src="@drawable/back_arrow"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back" />
+                android:contentDescription="Close"
+                android:src="@drawable/back_arrow" />
         </RelativeLayout>
 
-        <!-- Name and Creator Notes TextViews -->
         <TextView
             android:id="@+id/textViewName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginTop="12dp"
+            android:textColor="#101828"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textViewCreatorNotes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"
-            android:text="Creator Notes will go here" />
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="14dp"
+            android:textColor="#475467"
+            android:textSize="15sp" />
 
-        <!-- Buttons Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="2">
 
-            <!-- Select Character Button -->
             <Button
                 android:id="@+id/buttonReturnJson"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:text="Select Character" />
 
-            <!-- View Details Button -->
             <Button
                 android:id="@+id/buttonViewDetails"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:text="VIEW DETAILS" />
+                android:text="View Details" />
 
         </LinearLayout>
 
