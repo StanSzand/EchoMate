@@ -3,26 +3,31 @@ package com.spkdev.echomate
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
 class JsonAdapter(
     private val onClick: (JsonItem) -> Unit
-) : RecyclerView.Adapter<JsonAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<JsonAdapter.ViewHolder>(), Filterable {
 
-    private val items = mutableListOf<JsonItem>()
+    var items: MutableList<JsonItem> = mutableListOf() // Full list of items
+    var filteredItems: MutableList<JsonItem> = mutableListOf() // Filtered items displayed
 
-    fun submitItems(newItems: List<JsonItem>) {
-        val diffResult = DiffUtil.calculateDiff(JsonDiffCallback(items, newItems))
-        items.clear()
-        items.addAll(newItems)
-        diffResult.dispatchUpdatesTo(this)
+    fun updateItems(newItems: List<JsonItem>) {
+        items = newItems.toMutableList()
+        filteredItems = newItems.toMutableList()
+        notifyDataSetChanged()
     }
 
-    fun getItems(): List<JsonItem> = items
+    fun addItems(newItems: List<JsonItem>) {
+        val startIndex = filteredItems.size
+        filteredItems.addAll(newItems)
+        notifyItemRangeInserted(startIndex, newItems.size)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -31,22 +36,42 @@ class JsonAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
+        val item = filteredItems[position]
+        Picasso.get().load(item.imageUrl).into(holder.imageView) // Load image using Picasso
         holder.textViewName.text = item.name
         holder.jsonCreatorNotes.text = item.creatorNotes
-
-        Picasso.get()
-            .load(item.imageUrl)
-            .placeholder(android.R.drawable.ic_menu_gallery)
-            .error(android.R.drawable.ic_menu_report_image)
-            .fit()
-            .centerCrop()
-            .into(holder.imageView)
-
         holder.itemView.setOnClickListener { onClick(item) }
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = filteredItems.size
+
+
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val query = constraint?.toString()?.lowercase() ?: ""
+                val result = if (query.isEmpty()) {
+                    items
+                } else {
+                    items.filter {
+                        // Check if the name, creatorNotes, or any tag matches the query
+                        it.name.lowercase().contains(query) ||
+                                it.creatorNotes.lowercase().contains(query) ||
+                                it.tags.any { tag -> tag.lowercase().contains(query) }
+                    }
+                }
+                return FilterResults().apply { values = result }
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                results?.values?.let {
+                    filteredItems = (it as List<JsonItem>).toMutableList()
+                    notifyDataSetChanged()
+                }
+            }
+        }
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.imageView)
@@ -54,20 +79,7 @@ class JsonAdapter(
         val jsonCreatorNotes: TextView = view.findViewById(R.id.creatorNotes)
     }
 
-    private class JsonDiffCallback(
-        private val oldItems: List<JsonItem>,
-        private val newItems: List<JsonItem>
-    ) : DiffUtil.Callback() {
-        override fun getOldListSize(): Int = oldItems.size
 
-        override fun getNewListSize(): Int = newItems.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldItems[oldItemPosition].jsonUri == newItems[newItemPosition].jsonUri
-        }
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldItems[oldItemPosition] == newItems[newItemPosition]
-        }
-    }
 }

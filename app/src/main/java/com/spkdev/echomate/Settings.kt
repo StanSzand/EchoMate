@@ -40,6 +40,8 @@ class Settings : ComponentActivity() {
     val resultIntent = Intent()
     // Declare the ActivityResultLauncher for JSON file picker
     private lateinit var uploadJsonLauncher: ActivityResultLauncher<Intent>
+    private var characterName = ""
+    private val REQUEST_CODE_PREVIEW = 100
     private var chosenJSON: String = ""
 
     @SuppressLint("ClickableViewAccessibility")
@@ -47,28 +49,42 @@ class Settings : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        // Read file content method
+        fun readFileContent(uri: Uri): String {
+            val contentResolver = contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val stringBuilder = StringBuilder()
+            var line: String?
+
+            while (reader.readLine().also { line = it } != null) {
+                stringBuilder.append(line).append("\n")
+            }
+
+            reader.close()
+            return stringBuilder.toString()
+        }
+
         // Initialize the ActivityResultLauncher for the file picker
         uploadJsonLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     val selectedJson = result.data?.getStringExtra("selectedJson")
-                    val selectedJsonUri = result.data?.getStringExtra("selectedJsonUri")
-
-                    val jsonPayload = when {
-                        !selectedJson.isNullOrBlank() -> selectedJson
-                        !selectedJsonUri.isNullOrBlank() -> readTextFromUri(Uri.parse(selectedJsonUri))
-                        else -> null
-                    }
-
-                    if (!jsonPayload.isNullOrBlank()) {
+                    val characterName = result.data?.getStringExtra("characterName")
+                    if (selectedJson != null) {
                         try {
-                            chosenJSON = jsonPayload
+                            chosenJSON = selectedJson
 
-                            val systemPrompt = processJsonInput(jsonPayload)
+                            // Process the JSON content into a system prompt
+                            val systemPrompt = processJsonInput(selectedJson)
+
+                            // Apply the system prompt to AIBackend
                             Log.v("NewSystemPrompt", systemPrompt)
                             AIBackend.changeSetup(systemPrompt)
                             Toast.makeText(this, "System prompt applied!", Toast.LENGTH_SHORT).show()
-                            closeActivity()
+
+                            // After processing, close the activity
+                            closeActivity() // This will close the Settings activity
                         } catch (e: Exception) {
                             Toast.makeText(this, "Error processing JSON", Toast.LENGTH_SHORT).show()
                             e.printStackTrace()
@@ -259,12 +275,6 @@ class Settings : ComponentActivity() {
         }
     }
 
-
-    private fun readTextFromUri(uri: Uri): String {
-        val inputStream = contentResolver.openInputStream(uri) ?: return ""
-        return BufferedReader(InputStreamReader(inputStream)).use { it.readText() }
-    }
-
     private fun closeActivity() {
         setResult(RESULT_OK, resultIntent)
         finish()
@@ -275,7 +285,7 @@ class Settings : ComponentActivity() {
         // Array to hold alternate greetings globally
         private val alternateGreetingsArray = mutableListOf<String>()
         private var characterName = ""
-    
+
         fun countAlternateGreetings(): Int{
             return alternateGreetingsArray.size
         }
