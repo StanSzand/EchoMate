@@ -1,483 +1,429 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg_surface">
+    android:layout_height="match_parent">
+
+
+    <RelativeLayout xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:id="@+id/topBar"
+            android:background="@color/top_bar_color"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/goBackButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/back_arrow"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"
+                app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:id="@+id/settings"
+            android:text="SETTINGS"
+            android:textSize="26sp"
+            android:textColor="@color/white">
+
+
+        </TextView>
+
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topBar">
 
-        <!-- Top Bar -->
-        <RelativeLayout
-            android:id="@+id/topBar"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/topbar_bg"
-            android:paddingStart="8dp"
-            android:paddingEnd="12dp"
-            android:elevation="0dp">
-
-
-        <ImageButton
-                android:id="@+id/goBackButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/back_arrow"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                app:tint="@color/white"
-                android:layout_centerVertical="true"
-                android:layout_alignParentStart="true" />
-
-
-            <TextView
-                android:id="@+id/settings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="SETTINGS"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.05"
-                android:textColor="@color/white" />
-
-        </RelativeLayout>
-
-        <!-- BODY -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/topBar"
-            android:padding="12dp">
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/nameSetupLayout"
+            tools:ignore="UselessParent">
 
-            <!-- JSON format -->
-            <RelativeLayout
-                android:id="@+id/nameSetupLayout"
+            <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp"
-                tools:ignore="UselessParent">
+                android:layout_centerInParent="true"
+                android:id="@+id/nameSetup"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your JSON format here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeName"
+                android:maxLength="50000">
 
-                <EditText
-                    android:id="@+id/nameSetup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmChangeName"
-                    android:hint="Enter your JSON format here"
-                    android:inputType="text"
-                    android:maxLength="50000"
-                    android:background="@drawable/input_bg"
-                    android:padding="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/hint_color" />
+            </EditText>
 
-                <ImageButton
-                    android:id="@+id/confirmChangeName"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Setup text -->
-            <RelativeLayout
-                android:id="@+id/setupLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/nameSetupLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp"
-                tools:ignore="UselessParent">
-
-                <EditText
-                    android:id="@+id/newSetup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmChangeSetup"
-                    android:hint="Enter your new Setup here"
-                    android:inputType="text"
-                    android:maxLength="50000"
-                    android:background="@drawable/input_bg"
-                    android:padding="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/hint_color" />
-
-                <ImageButton
-                    android:id="@+id/confirmChangeSetup"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Reset setup -->
-            <RelativeLayout
-                android:id="@+id/resetSetupLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/setupLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/resetText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/resetSetupButton"
-                    android:layout_centerVertical="true"
-                    android:paddingEnd="8dp"
-                    android:text="@string/resetSetupText"
-                    android:textSize="16sp"
-                    android:textColor="@color/on_surface_secondary" />
-
-                <ImageButton
-                    android:id="@+id/resetSetupButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/loop_vector"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Model spinner -->
-            <RelativeLayout
-                android:id="@+id/modelChangeLayoutDropdown"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/resetSetupLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <Spinner
-                    android:id="@+id/spinnerModels"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmSpinnerModel"
-                    android:padding="8dp"
-                    tools:listitem="@layout/support_simple_spinner_dropdown_item" />
-
-                <ImageButton
-                    android:id="@+id/confirmSpinnerModel"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Model text -->
-            <RelativeLayout
-                android:id="@+id/modelChangeLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/modelChangeLayoutDropdown"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <EditText
-                    android:id="@+id/newModel"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmChangeModel"
-                    android:hint="Enter your new Model here"
-                    android:inputType="text"
-                    android:background="@drawable/input_bg"
-                    android:padding="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/hint_color" />
-
-                <ImageButton
-                    android:id="@+id/confirmChangeModel"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-
-            <!-- Reasoning enable -->
-            <RelativeLayout
-                android:id="@+id/resetModelLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/modelChangeLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/resetModelText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/resetModelButton"
-                    android:layout_centerVertical="true"
-                    android:paddingEnd="8dp"
-                    android:text="@string/resetModelText"
-                    android:textSize="16sp"
-                    android:textColor="@color/on_surface_secondary" />
-
-                <ImageButton
-                    android:id="@+id/resetModelButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/loop_vector"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Experimental switch -->
-            <RelativeLayout
-                android:id="@+id/experimantalLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/resetModelLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/extendedHistorySwitchText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/extendedHistorySwitch"
-                    android:layout_centerVertical="true"
-                    android:text="@string/experimentalExtendedHistory"
-                    android:textSize="16sp"
-                    android:textColor="@color/on_surface_secondary" />
-
-                <Switch
-                    android:id="@+id/extendedHistorySwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true" />
-            </RelativeLayout>
-
-            <!-- Local model switch -->
-            <RelativeLayout
-                android:id="@+id/localModelLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/experimantalLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/localModelText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/localModelSwitch"
-                    android:layout_centerVertical="true"
-                    android:text="@string/localModel"
-                    android:textSize="16sp"
-                    android:textColor="@color/on_surface_secondary" />
-
-                <Switch
-                    android:id="@+id/localModelSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true" />
-            </RelativeLayout>
-
-
-            <RelativeLayout
-                android:id="@+id/spinnerEffortLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/localModelLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <Spinner
-                    android:id="@+id/spinnerEffort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmSpinnerEffort"
-                    android:padding="8dp"
-                    tools:listitem="@layout/support_simple_spinner_dropdown_item" />
-
-                <ImageButton
-                    android:id="@+id/confirmSpinnerEffort"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Reasoning switch -->
-            <RelativeLayout
-                android:id="@+id/reasoningLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/spinnerEffortLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/reasoningText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/reasoningSwitch"
-                    android:layout_centerVertical="true"
-                    android:text="Reasoning"
-                    android:textSize="16sp"
-                    android:textColor="@color/on_surface_secondary" />
-
-                <Switch
-                    android:id="@+id/reasoningSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true" />
-            </RelativeLayout>
-
-            <!-- Context -->
-            <RelativeLayout
-                android:id="@+id/contextChangeLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/reasoningLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <EditText
-                    android:id="@+id/newContext"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmChangeContext"
-                    android:hint="Enter your new context here"
-                    android:inputType="text"
-                    android:background="@drawable/input_bg"
-                    android:padding="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/hint_color" />
-
-                <ImageButton
-                    android:id="@+id/confirmChangeContext"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Temperature -->
-            <RelativeLayout
-                android:id="@+id/temperatureLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/contextChangeLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <EditText
-                    android:id="@+id/newTemp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/confirmTemp"
-                    android:hint="Enter your new temp here"
-                    android:inputType="text"
-                    android:background="@drawable/input_bg"
-                    android:padding="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/hint_color" />
-
-                <ImageButton
-                    android:id="@+id/confirmTemp"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/check_mark"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary" />
-            </RelativeLayout>
-
-            <!-- Character JSON -->
-            <RelativeLayout
-                android:id="@+id/jsonLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/temperatureLayout"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <Button
-                    android:id="@+id/uploadJsonButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Choose A Character"
-                    android:textAllCaps="false"
-                    android:padding="14dp"
-                    android:backgroundTint="@color/primary"
-                    android:textColor="@color/white" />
-            </RelativeLayout>
-
-            <!-- Lore JSON -->
-            <RelativeLayout
-                android:id="@+id/loreLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/jsonLayout"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/row_bg"
-                android:padding="12dp">
-
-                <Button
-                    android:id="@+id/loreJsonButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Select Lore Book"
-                    android:textAllCaps="false"
-                    android:padding="14dp"
-                    android:backgroundTint="@color/secondary"
-                    android:textColor="@color/white" />
-            </RelativeLayout>
+            <ImageButton
+                android:id="@+id/confirmChangeName"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"
+                />
 
         </RelativeLayout>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/setupLayout"
+            tools:ignore="UselessParent"
+            android:layout_below="@id/nameSetupLayout">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newSetup"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new Setup here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeSetup"
+                android:maxLength="50000">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeSetup"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/setupLayout"
+            android:id="@+id/resetSetupLayout"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resetSetupText"
+                android:textSize="18sp"
+                android:id="@+id/resetText"
+                android:layout_toStartOf="@id/resetSetupButton"
+                android:layout_centerInParent="true"
+                android:padding="8dp">
+
+            </TextView>
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/loop_vector"
+                android:background="@null"
+                android:id="@+id/resetSetupButton"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </ImageButton>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/modelChangeLayoutDropdown"
+            android:layout_below="@id/resetSetupLayout">
+
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/spinnerModels"
+                android:padding="8dp"
+                android:layout_toStartOf="@id/confirmSpinnerModel"
+                android:layout_centerInParent="true"
+                tools:listitem="@layout/support_simple_spinner_dropdown_item">
+
+            </Spinner>
+
+            <ImageButton
+                android:id="@+id/confirmSpinnerModel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/modelChangeLayout"
+            android:layout_below="@id/modelChangeLayoutDropdown">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newModel"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new Model here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeModel">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeModel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/modelChangeLayout"
+            android:id="@+id/resetModelLayout"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resetModelText"
+                android:textSize="18sp"
+                android:id="@+id/resetModelText"
+                android:layout_toStartOf="@id/resetModelButton"
+                android:layout_centerInParent="true"
+                android:padding="8dp">
+
+            </TextView>
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/loop_vector"
+                android:background="@null"
+                android:id="@+id/resetModelButton"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </ImageButton>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/resetModelLayout"
+            android:id="@+id/experimantalLayout"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/experimentalExtendedHistory"
+                android:textSize="18sp"
+                android:id="@+id/extendedHistorySwitchText"
+                android:layout_toStartOf="@id/extendedHistorySwitch"
+                android:layout_centerInParent="true"
+                android:textAlignment="center"
+                android:padding="8dp">
+
+            </TextView>
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/extendedHistorySwitch"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </Switch>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/experimantalLayout"
+            android:id="@+id/localModelLayout"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/localModel"
+                android:textSize="18sp"
+                android:id="@+id/localModelText"
+                android:layout_toStartOf="@id/localModelSwitch"
+                android:layout_centerInParent="true"
+                android:textAlignment="center"
+                android:padding="8dp">
+
+            </TextView>
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/localModelSwitch"
+                android:padding="8dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true">
+
+            </Switch>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/contextChangeLayout"
+            android:layout_below="@id/localModelLayout">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newContext"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new context here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmChangeContext">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmChangeContext"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:id="@+id/temperatureLayout"
+            android:layout_below="@id/contextChangeLayout">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:id="@+id/newTemp"
+                android:inputType="text"
+                android:textAlignment="textStart"
+                android:hint="Enter your new temp here"
+                android:autofillHints="text"
+                android:layout_toStartOf="@id/confirmTemp">
+
+            </EditText>
+
+            <ImageButton
+                android:id="@+id/confirmTemp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/check_mark"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:padding="8dp"
+                android:layout_marginStart="10dp"/>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/temperatureLayout"
+            android:padding="8dp"
+            android:id="@+id/jsonLayout">
+
+            <!-- Button to trigger file selection -->
+            <Button
+                android:id="@+id/uploadJsonButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Choose A Character" />
+
+            <!-- Scrollable JSON Content Preview -->
+            <ScrollView
+                android:id="@+id/jsonScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/uploadJsonButton"
+                android:layout_marginTop="8dp"
+                android:fillViewport="true"
+                android:scrollbars="vertical">
+
+
+            </ScrollView>
+        </RelativeLayout>
+
+
+
+
+
     </RelativeLayout>
+
+
+</RelativeLayout>
+
+
 </ScrollView>

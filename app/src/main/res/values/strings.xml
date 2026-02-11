@@ -10,20 +10,11 @@
     <string name="localModel">Enable usage of local models</string>
     <string-array name="models">
         <item>Change the model using the options below:</item>
-        <item>deepseek/deepseek-chat-v3.1</item>
+        <item>deepseek/deepseek-chat-v3-0324</item>
         <item>deepseek/deepseek-r1-0528</item>
-        <item>z-ai/glm-4.7</item>
+        <item>nousresearch/hermes-3-llama-3.1-405b</item>
         <item>qwen/qwen3-30b-a3b</item>
         <item>deepseek/deepseek-r1</item>
-        <item>writer/palmyra-x5</item>
-    </string-array>
-    <string-array name="effort">
-        <item>none</item>
-        <item>minimal</item>
-        <item>low</item>
-        <item>medium</item>
-        <item>high</item>
-        <item>xhigh</item>
     </string-array>
 
 </resources>

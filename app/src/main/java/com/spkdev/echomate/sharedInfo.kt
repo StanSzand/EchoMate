@@ -13,28 +13,6 @@ class sharedInfo {
         }
 
 
-
-        fun getFavorites(): MutableSet<String> {
-            return sharedPreferences.getStringSet("Favorites", mutableSetOf())!!.toMutableSet()
-        }
-
-        fun addFavorite(name: String) {
-            val favs = getFavorites()
-            favs.add(name)
-            sharedPreferences.edit().putStringSet("Favorites", favs).apply()
-        }
-
-        fun removeFavorite(name: String) {
-            val favs = getFavorites()
-            favs.remove(name)
-            sharedPreferences.edit().putStringSet("Favorites", favs).apply()
-        }
-
-        fun isFavorite(name: String): Boolean {
-            return getFavorites().contains(name)
-        }
-
-
         fun saveDataString(key:String, textToSave: String){
             val editor = sharedPreferences.edit()
 
