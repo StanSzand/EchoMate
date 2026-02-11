@@ -7,6 +7,6 @@ data class JsonItem(
     val name: String,
     val description: String,
     val creatorNotes: String,
-    val jsonObject: String,
-    val tags: List<String> // New array for tags
+    val tags: List<String>,
+    val jsonUri: String
 ) : Serializable
