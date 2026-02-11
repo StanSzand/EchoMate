@@ -284,8 +284,10 @@ class  MainActivity : ComponentActivity() {
 
             if (firstMessage != null) {
                 //AIBackend.addEntry("user", "Let's begin.")
-                AIBackend.addEntry("assistant", firstMessage.replace("{{user}}", "Stan").replace("{{char}}", appName.text.toString()))
-                addMessage(ChatMessage(firstMessage.replace("{{user}}", "Stan").replace("{{char}}", appName.text.toString()), false))
+                val userName = sharedInfo.getDataString("Name").ifBlank { "User" }
+                val introMessage = firstMessage.replace("{{user}}", userName).replace("{{char}}", appName.text.toString())
+                AIBackend.addEntry("assistant", introMessage)
+                addMessage(ChatMessage(introMessage, false))
             }
 
             Log.v("updatedUrl", updatedImageUrl.toString())
