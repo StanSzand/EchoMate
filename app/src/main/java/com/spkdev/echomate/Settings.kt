@@ -285,6 +285,7 @@ class Settings : ComponentActivity() {
         // Array to hold alternate greetings globally
         private val alternateGreetingsArray = mutableListOf<String>()
         private var characterName = ""
+        private var userName = "User"
 
         fun countAlternateGreetings(): Int{
             return alternateGreetingsArray.size
@@ -297,7 +298,7 @@ class Settings : ComponentActivity() {
                 Log.v("alternateGreetings", alternateGreetingsArray.toString())
                 if (index in alternateGreetingsArray.indices) {
                     val alternateGreeting = alternateGreetingsArray[index]
-                        .replace("{{user}}", "Stan")
+                        .replace("{{user}}", userName)
                         .replace("{{char}}", characterName)
                         .replace("\"", "'") // Escape quotes
                     //AIBackend.removeEntry()
@@ -316,10 +317,11 @@ class Settings : ComponentActivity() {
         }
 
         // Function to load alternate greetings into the array
-        fun loadAlternateGreetings(alternateGreetings: JSONArray, name: String, firstMessage: String?) {
+        fun loadAlternateGreetings(alternateGreetings: JSONArray, name: String, firstMessage: String?, selectedUserName: String) {
             alternateGreetingsArray.clear() // Clear previous entries
 
             characterName = name
+            userName = selectedUserName
 
             // If no alternate greetings, just add firstMessage
             if (alternateGreetings.length() == 0) {
@@ -361,11 +363,14 @@ class Settings : ComponentActivity() {
 
         // Extract fields
         val name = data.getString("name")
-        var description = data.getString("description")
-        val firstMessage = data.optString("first_mes", "No first message provided.")
-        val scenario = data.optString("scenario", "No scenario available.")
+        val userName = sharedInfo.getDataString("Name").ifBlank { "User" }
+        var description = data.optString("description", "No description available.")
+        val firstMessage = data.optString("first_mes", "")
+        val scenario = data.optString("scenario", "")
         val pnglink = data.optString("avatar", "false")
-        val personality = data.optString ("personality", "Nothing added, use the description")
+        val personality = data.optString("personality", "")
+        val creatorNotes = data.optString("creator_notes", "")
+        val mesExample = data.optString("mes_example", "")
 
 
 
@@ -374,29 +379,66 @@ class Settings : ComponentActivity() {
         resultIntent.putExtra("firstMessage", firstMessage)
 
         // Replace placeholders
-        description = description.replace("{{char}}", name).replace("{{user}}", "Stan")
+        description = description.replace("{{char}}", name).replace("{{user}}", userName)
 
         if (firstMessage.isNotEmpty()) {
             Log.v("FirstMessage", "Added first message")
-            AIBackend.addEntry("assistant", firstMessage.replace("\"", "'"))
+            AIBackend.addEntry(
+                "assistant",
+                firstMessage
+                    .replace("{{char}}", name)
+                    .replace("{{user}}", userName)
+                    .replace("\"", "'")
+            )
         }
 
         // Process alternate greetings if present
         if (data.has("alternate_greetings")) {
             val alternateGreetings = data.getJSONArray("alternate_greetings")
-            loadAlternateGreetings(alternateGreetings, name, firstMessage) // Load into global array with firstMessage at index 0
+            loadAlternateGreetings(alternateGreetings, name, firstMessage, userName) // Load into global array with firstMessage at index 0
         } else {
             // If no alternate greetings, load just the firstMessage
-            loadAlternateGreetings(JSONArray(), name, firstMessage) // Pass an empty array if no alternate greetings
+            loadAlternateGreetings(JSONArray(), name, firstMessage, userName) // Pass an empty array if no alternate greetings
         }
 
-        return ("You are a to act as $name. Always stay in character and keep your messages not too long but also not too short unless stated otherwise. If user sends a message with [] brackets, its an instruction for you not the character " +
-                "Here is the character you need to play: " +
-                ", You are $name, $description " +
-                ", Scenario: $scenario"+
-                ", Personality: $personality" +
-                ", you are to keep actions and thoughts in asteriks.")
-            .replace("\"", "\\\"").replace("\\r", "")
+        val promptSections = mutableListOf<String>()
+        promptSections.add(
+            "You are roleplaying as $name. Stay in character at all times. " +
+                    "Keep responses immersive, emotionally expressive, and naturally paced."
+        )
+        promptSections.add(
+            "If the user sends text inside [square brackets], treat it as out-of-character instructions and do not roleplay it as dialogue."
+        )
+        promptSections.add("Character profile: $description")
+
+        if (personality.isNotBlank()) {
+            promptSections.add("Personality: ${personality.replace("{{char}}", name).replace("{{user}}", userName)}")
+        }
+
+        if (scenario.isNotBlank()) {
+            promptSections.add("Scenario: ${scenario.replace("{{char}}", name).replace("{{user}}", userName)}")
+        }
+
+        if (creatorNotes.isNotBlank()) {
+            promptSections.add("Creator notes: ${creatorNotes.replace("{{char}}", name).replace("{{user}}", userName)}")
+        }
+
+        if (mesExample.isNotBlank()) {
+            promptSections.add("Style examples: ${mesExample.replace("{{char}}", name).replace("{{user}}", userName)}")
+        }
+
+        if (firstMessage.isNotBlank()) {
+            promptSections.add(
+                "Starting message reference: " +
+                        firstMessage.replace("{{char}}", name).replace("{{user}}", userName)
+            )
+        }
+
+        promptSections.add("Use *asterisks* for actions and inner thoughts.")
+
+        return promptSections.joinToString(separator = "\n\n")
+            .replace("\"", "\\\"")
+            .replace("\\r", "")
     }
 
 

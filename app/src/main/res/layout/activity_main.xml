@@ -1,142 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_main_gradient"
     android:orientation="vertical"
     android:padding="0dp">
 
-    <!-- Top Bar -->
     <RelativeLayout
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/topBar"
-        android:background="@color/top_bar_color"
-        android:padding="1dp">
+        android:background="@drawable/top_bar_modern"
+        android:elevation="6dp"
+        android:padding="10dp">
 
-        <!-- Icon on the left -->
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:src="@drawable/chat_vector"
             android:id="@+id/topLeftIcon"
-            android:padding="8dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/icon_button_bg"
+            android:padding="10dp"
+            android:src="@drawable/chat_vector"
             android:tint="@color/white" />
 
-        <!-- Settings Button -->
         <ImageButton
             android:id="@+id/openOptions"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/settings_wheel"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@null"
-            android:padding="8dp"
-            android:layout_marginEnd="8dp"
+            android:background="@drawable/icon_button_bg"
+            android:padding="10dp"
+            android:src="@drawable/settings_wheel"
             android:tint="@color/white" />
 
-        <!-- Reset Screen Button -->
         <ImageButton
             android:id="@+id/resetScreen"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/clear_all"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_toStartOf="@id/openOptions"
             android:layout_centerVertical="true"
-            android:background="@null"
-            android:padding="8dp"
             android:layout_marginEnd="8dp"
-            android:tint="#c70a0a" />
+            android:background="@drawable/icon_button_bg"
+            android:padding="10dp"
+            android:src="@drawable/clear_all"
+            android:tint="#FF8B8B" />
 
-        <!-- Scrollable App Name -->
         <HorizontalScrollView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
             android:layout_toEndOf="@id/topLeftIcon"
             android:layout_toStartOf="@id/resetScreen"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp">
+            android:scrollbars="none">
 
             <TextView
+                android:id="@+id/appName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxWidth="160dp"
-                android:text="EchoMate"
-                android:id="@+id/appName"
-                android:textColor="@color/white"
-                android:textSize="26sp"
                 android:ellipsize="end"
-                android:singleLine="true"
-                android:scrollHorizontally="true"
                 android:focusable="true"
-                android:clickable="true" />
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="EchoMate"
+                android:textColor="@color/white"
+                android:textSize="28sp"
+                android:textStyle="bold" />
         </HorizontalScrollView>
 
     </RelativeLayout>
 
-    <!-- Save/Load Buttons Row -->
-    <!--<RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_below="@id/topBar"
-        android:padding="8dp"
-        android:orientation="horizontal">
-
-
-
-        &lt;!&ndash; Load Button &ndash;&gt;
-
-    </RelativeLayout>-->
-
-    <!-- RecyclerView for Messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/topBar"
         android:layout_above="@id/bottom_layout"
+        android:layout_below="@id/topBar"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
         android:clipToPadding="false"
+        android:paddingBottom="8dp"
         android:scrollbars="vertical" />
 
-    <!-- Bottom Layout containing Text input and Send Button -->
     <RelativeLayout
+        android:id="@+id/bottom_layout"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="88dp"
         android:layout_alignParentBottom="true"
-        android:padding="8dp"
-        android:id="@+id/bottom_layout">
+        android:background="@drawable/bottom_panel_bg"
+        android:elevation="6dp"
+        android:padding="10dp">
 
-        <!-- Text input field -->
         <EditText
             android:id="@+id/textInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:elevation="4dp"
-            android:layout_margin="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@id/sendRequest"
             android:autofillHints="text"
-            android:background="@drawable/rounded_textbox"
-            android:textAlignment="textStart"
-            android:hint='@string/textInput'
+            android:background="@drawable/input_field_bg"
+            android:hint="@string/textInput"
             android:inputType="text"
-            android:layout_toStartOf="@id/sendRequest" />
+            android:minHeight="48dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp"
+            android:textAlignment="textStart" />
 
-        <!-- Send Button -->
         <ImageButton
             android:id="@+id/sendRequest"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/icon_send"
-            android:text="@string/sendButton"
             android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
-            android:background="@null"
-            android:padding="8dp"
-            android:layout_marginStart="10dp" />
+            android:background="@drawable/send_button_bg"
+            android:contentDescription="@string/sendButton"
+            android:padding="10dp"
+            android:src="@drawable/icon_send"
+            android:tint="@color/white" />
 
     </RelativeLayout>
 
