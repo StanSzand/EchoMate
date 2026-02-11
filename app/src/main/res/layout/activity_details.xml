@@ -1,7 +1,9 @@
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -9,26 +11,50 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/textViewName"
+        <!-- Card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:orientation="vertical"
+            android:background="@drawable/popup_bg"
+            android:padding="16dp">
 
-        <TextView
-            android:id="@+id/textViewDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            <TextView
+                android:id="@+id/textViewName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_surface"
+                android:letterSpacing="0.02"
+                android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/buttonSelect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Dismiss" />
+            <TextView
+                android:id="@+id/textViewDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface_secondary"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginBottom="16dp" />
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E6E9EF"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/buttonSelect"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="DISMISS"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary"
+                android:gravity="center" />
+
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

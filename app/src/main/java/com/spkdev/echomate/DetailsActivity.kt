@@ -31,4 +31,6 @@ class DetailsActivity : AppCompatActivity() {
             finish()
         }
     }
+
+
 }

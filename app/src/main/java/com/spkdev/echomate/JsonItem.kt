@@ -1,5 +1,6 @@
 package com.spkdev.echomate
 
+import android.net.Uri
 import java.io.Serializable
 
 data class JsonItem(
@@ -8,5 +9,6 @@ data class JsonItem(
     val description: String,
     val creatorNotes: String,
     val jsonObject: String,
-    val tags: List<String> // New array for tags
+    val tags: List<String>,
+    val fileUri: Uri? = null // New field for local file/lorebook reference
 ) : Serializable

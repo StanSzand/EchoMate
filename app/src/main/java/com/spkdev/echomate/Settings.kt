@@ -28,6 +28,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import com.spkdev.echomate.AIBackend.Companion.setReasoning
 import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONException
@@ -47,6 +48,7 @@ class Settings : ComponentActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedInfo.initialize(applicationContext)
         setContentView(R.layout.activity_settings)
 
         // Read file content method
@@ -68,23 +70,26 @@ class Settings : ComponentActivity() {
         // Initialize the ActivityResultLauncher for the file picker
         uploadJsonLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
+                if (result.resultCode == RESULT_OK) {
+
+                    // NEW: if this came from LorebookPreviewActivity, just close Settings.
+                    val isLore = result.data?.getBooleanExtra("loreSelected", false) == true
+                    if (isLore) {
+                        Toast.makeText(this, "Lorebook selected!", Toast.LENGTH_SHORT).show()
+                        closeActivity() // finishes Settings
+                        return@registerForActivityResult
+                    }
+
+                    // Existing character selection handling
                     val selectedJson = result.data?.getStringExtra("selectedJson")
                     val characterName = result.data?.getStringExtra("characterName")
                     if (selectedJson != null) {
                         try {
                             chosenJSON = selectedJson
-
-                            // Process the JSON content into a system prompt
                             val systemPrompt = processJsonInput(selectedJson)
-
-                            // Apply the system prompt to AIBackend
-                            Log.v("NewSystemPrompt", systemPrompt)
                             AIBackend.changeSetup(systemPrompt)
                             Toast.makeText(this, "System prompt applied!", Toast.LENGTH_SHORT).show()
-
-                            // After processing, close the activity
-                            closeActivity() // This will close the Settings activity
+                            closeActivity() // already closes Settings after character selection
                         } catch (e: Exception) {
                             Toast.makeText(this, "Error processing JSON", Toast.LENGTH_SHORT).show()
                             e.printStackTrace()
@@ -92,6 +97,9 @@ class Settings : ComponentActivity() {
                     }
                 }
             }
+
+
+
 
         // Image Buttons Initialization
         val backButton = findViewById<ImageButton>(R.id.goBackButton)
@@ -101,8 +109,12 @@ class Settings : ComponentActivity() {
         val resetModelButton = findViewById<ImageButton>(R.id.resetModelButton)
         val nameChangeButton = findViewById<ImageButton>(R.id.confirmChangeName)
         val spinnerButton = findViewById<ImageButton>(R.id.confirmSpinnerModel)
+        val spinnerButtonEffort = findViewById<ImageButton>(R.id.confirmSpinnerEffort)
         val contextButtonConfirm = findViewById<ImageButton>(R.id.confirmChangeContext)
         val tempButton = findViewById<ImageButton>(R.id.confirmTemp)
+
+        // --- Switch Initialization (add this next to the others) ---
+        val reasoningSwitch = findViewById<Switch>(R.id.reasoningSwitch)
 
         // EditText fields Initialization
         val newSetup = findViewById<EditText>(R.id.newSetup)
@@ -115,8 +127,12 @@ class Settings : ComponentActivity() {
         val spinnerChoice = findViewById<Spinner>(R.id.spinnerModels)
         val modelsArray = resources.getStringArray(R.array.models)
 
+        val effortArray = resources.getStringArray(R.array.effort)
+        val spinnerEffortChoice = findViewById<Spinner>(R.id.spinnerEffort)
+
         // Button to upload JSON
         val uploadJsonButton = findViewById<Button>(R.id.uploadJsonButton)
+        val uploadLoreButton = findViewById<Button>(R.id.loreJsonButton)
 
 
 
@@ -133,6 +149,28 @@ class Settings : ComponentActivity() {
             closeActivity()
         }
 
+        // Reasoning toggle behavior + persistence
+        reasoningSwitch.setOnClickListener {
+            val enabled = reasoningSwitch.isChecked
+            AIBackend.setReasoning(enabled)
+            sharedInfo.saveDataString("ReasoningSwitch", enabled.toString())
+            Toast.makeText(
+                this,
+                if (enabled) "Reasoning enabled" else "Reasoning disabled",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+// --- Restore saved state (put near your existing ContextSwitch restore) ---
+        if (sharedInfo.exists("ReasoningSwitch")) {
+            val value = sharedInfo.getDataString("ReasoningSwitch").toBoolean()
+            AIBackend.setReasoning(value)
+            reasoningSwitch.isChecked = value
+        } else {
+            AIBackend.setReasoning(false)
+            reasoningSwitch.isChecked = false
+        }
+
 
 
 
@@ -142,6 +180,12 @@ class Settings : ComponentActivity() {
             val intent = Intent(this, JsonPreviewActivity::class.java)
             uploadJsonLauncher.launch(intent)
         }
+
+        uploadLoreButton.setOnClickListener {
+            val intent = Intent(this, LorebookPreviewActivity::class.java)
+            uploadJsonLauncher.launch(intent)
+        }
+
 
 
 
@@ -215,6 +259,32 @@ class Settings : ComponentActivity() {
                 sharedInfo.saveDataString("Model", model)
                 Toast.makeText(this@Settings, "Model $model has been set", Toast.LENGTH_LONG).show()
             }
+        }
+
+
+        // Model choice from a dropdown list
+        spinnerEffortChoice.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, effortArray)
+        spinnerEffortChoice.onItemSelectedListener = object : OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                //todo
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Not implemented
+            }
+        }
+
+        spinnerButtonEffort.setOnClickListener {
+            val effort = effortArray[spinnerEffortChoice.selectedItemPosition]
+            AIBackend.changeEffort(effort)
+            sharedInfo.saveDataString("Effort", effort)
+            Toast.makeText(this@Settings, "Effort $effort has been set", Toast.LENGTH_LONG).show()
+
         }
 
         // Changing the model manually
@@ -355,7 +425,7 @@ class Settings : ComponentActivity() {
         }
     }
 
-    private fun processJsonInput(jsonString: String): String {
+    fun processJsonInput(jsonString: String): String {
         val json = JSONObject(jsonString)
         val data = json.getJSONObject("data")
 
@@ -395,7 +465,7 @@ class Settings : ComponentActivity() {
                 ", You are $name, $description " +
                 ", Scenario: $scenario"+
                 ", Personality: $personality" +
-                ", you are to keep actions and thoughts in asteriks.")
+                ", you are to keep actions in asteriks and thoughts in '. Only respond as $name unless stated otherwise, never talk or decide things for the user! Make sure to be descriptive in your actions.")
             .replace("\"", "\\\"").replace("\\r", "")
     }
 

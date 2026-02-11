@@ -1,80 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="0dp"
+    android:background="@android:color/transparent"
+    android:clipToPadding="false">
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="0dp">
 
-        <!-- Container for image and back button -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clipToOutline="true">
 
-            <!-- ImageView -->
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:background="@drawable/rounded_top_mask"
+            android:clipToOutline="true">
+
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter" />
+                android:scaleType="centerCrop"
+                android:contentDescription="@null" />
 
-            <!-- Back Button in top left corner -->
+            <!-- Top gradient, also clipped -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:layout_gravity="top"
+                android:src="@drawable/top_gradient_scrim" />
+
+            <!-- Back -->
             <ImageButton
                 android:id="@+id/buttonBack"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
+                android:layout_margin="8dp"
+                android:layout_gravity="top|start"
                 android:src="@drawable/back_arrow"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/white"
+                android:background="@drawable/clickable_circle"
                 android:contentDescription="Back" />
-        </RelativeLayout>
 
-        <!-- Name and Creator Notes TextViews -->
-        <TextView
-            android:id="@+id/textViewName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp" />
+            <!-- Favorite -->
+            <ImageButton
+                android:id="@+id/buttonFavorite"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="8dp"
+                android:layout_gravity="top|end"
+                android:src="@drawable/ic_star_outline"
+                android:tint="@color/yellow"
+                android:background="@drawable/clickable_circle"
+                android:contentDescription="Favorite" />
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/textViewCreatorNotes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"
-            android:text="Creator Notes will go here" />
 
-        <!-- Buttons Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2">
+            android:orientation="vertical"
+            android:padding="12dp">
 
-            <!-- Select Character Button -->
-            <Button
-                android:id="@+id/buttonReturnJson"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/textViewName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Select Character" />
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_surface"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp" />
 
-            <!-- View Details Button -->
-            <Button
-                android:id="@+id/buttonViewDetails"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/textViewCreatorNotes"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="VIEW DETAILS" />
+                android:textSize="15sp"
+                android:textColor="@color/on_surface_secondary"
+                android:layout_marginBottom="16dp"
+                android:text="Creator Notes will go here" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:baselineAligned="false"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/buttonReturnJson"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="SELECT"
+                    android:textAllCaps="true"
+                    android:textStyle="bold"
+                    android:background="@drawable/btn_outline"
+                    android:backgroundTint="@color/blue"
+                    android:singleLine="true"
+                    android:gravity="center" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="match_parent" />
+
+                <Button
+                    android:id="@+id/buttonViewDetails"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="VIEW DETAILS"
+                    android:textAllCaps="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:background="@drawable/btn_outline"
+                    android:gravity="center" />
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
-
-</ScrollView>
+</LinearLayout>
+    </ScrollView>

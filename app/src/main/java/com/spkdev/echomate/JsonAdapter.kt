@@ -1,5 +1,6 @@
 package com.spkdev.echomate
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,8 +15,8 @@ class JsonAdapter(
     private val onClick: (JsonItem) -> Unit
 ) : RecyclerView.Adapter<JsonAdapter.ViewHolder>(), Filterable {
 
-    var items: MutableList<JsonItem> = mutableListOf() // Full list of items
-    var filteredItems: MutableList<JsonItem> = mutableListOf() // Filtered items displayed
+    var items: MutableList<JsonItem> = mutableListOf()         // full dataset
+    var filteredItems: MutableList<JsonItem> = mutableListOf() // what’s currently shown
 
     fun updateItems(newItems: List<JsonItem>) {
         items = newItems.toMutableList()
@@ -23,11 +24,26 @@ class JsonAdapter(
         notifyDataSetChanged()
     }
 
-    fun addItems(newItems: List<JsonItem>) {
-        val startIndex = filteredItems.size
-        filteredItems.addAll(newItems)
-        notifyItemRangeInserted(startIndex, newItems.size)
+    // NEW: set the full dataset without changing what's shown yet
+    fun setAllItems(all: List<JsonItem>) {
+        items = all.toMutableList()
+        // do NOT touch filteredItems here
+        notifyDataSetChanged()
     }
+
+    // NEW: append a page to what's visible
+    fun showNextPage(nextPage: List<JsonItem>) {
+        val start = filteredItems.size
+        filteredItems.addAll(nextPage)
+        notifyItemRangeInserted(start, nextPage.size)
+    }
+
+    fun addItems(newOnes: List<JsonItem>) {
+        val start = items.size
+        items.addAll(newOnes)
+        notifyItemRangeInserted(start, newOnes.size)
+    }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -37,15 +53,24 @@ class JsonAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = filteredItems[position]
-        Picasso.get().load(item.imageUrl).into(holder.imageView) // Load image using Picasso
+
+        if (item.imageUrl.isNotEmpty()) {
+            Picasso.get().load(item.imageUrl).into(holder.imageView)
+        } else {
+            holder.imageView.setImageResource(R.drawable.placeholder)
+        }
         holder.textViewName.text = item.name
         holder.jsonCreatorNotes.text = item.creatorNotes
-        holder.itemView.setOnClickListener { onClick(item) }
+
+        // Make absolutely sure the root is clickable and forwards the click
+        holder.itemView.isClickable = true
+        holder.itemView.setOnClickListener {
+            Log.d("JsonAdapter", "Clicked: ${item.name}")
+            onClick(item)
+        }
     }
 
     override fun getItemCount(): Int = filteredItems.size
-
-
 
     override fun getFilter(): Filter {
         return object : Filter() {
@@ -55,7 +80,6 @@ class JsonAdapter(
                     items
                 } else {
                     items.filter {
-                        // Check if the name, creatorNotes, or any tag matches the query
                         it.name.lowercase().contains(query) ||
                                 it.creatorNotes.lowercase().contains(query) ||
                                 it.tags.any { tag -> tag.lowercase().contains(query) }
@@ -78,8 +102,4 @@ class JsonAdapter(
         val textViewName: TextView = view.findViewById(R.id.textViewName)
         val jsonCreatorNotes: TextView = view.findViewById(R.id.creatorNotes)
     }
-
-
-
-
 }

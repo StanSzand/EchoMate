@@ -5,10 +5,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.util.Log
-import android.widget.Button
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
@@ -16,19 +17,14 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.app.Activity
 import android.app.AlertDialog
-import android.view.Gravity
-import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.squareup.picasso.Picasso
-
-import androidx.appcompat.widget.SearchView // Ensure correct import
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 
 class JsonPreviewActivity : AppCompatActivity() {
 
@@ -40,149 +36,164 @@ class JsonPreviewActivity : AppCompatActivity() {
         const val REQUEST_CODE_OPEN_DIRECTORY = 1
     }
 
+    private var currentPage = 0
+    private val pageSize = 50
+    private var showingFavs = false
+    private var isSearching = false // NEW: block pagination while searching
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_json_preview)
 
         recyclerView = findViewById(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val selectFolderButton = findViewById<Button>(R.id.selectFolderButton)
-        selectFolderButton.setOnClickListener {
-            openFolderPicker()
+        // Grid: dynamic span so more tiles fit on wider screens
+        val density = resources.displayMetrics.density
+        val minTileDp = 160
+        val spanCount = maxOf(2, (resources.displayMetrics.widthPixels / (minTileDp * density)).toInt())
+        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
+        recyclerView.setHasFixedSize(true)
+
+        // import com.google.android.material.appbar.MaterialToolbar
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+
+// DO NOT call setSupportActionBar(toolbar)
+        toolbar.setNavigationOnClickListener { finish() }
+
+// If you did not set app:menu in XML, inflate it here:
+        if (toolbar.menu.size() == 0) {
+            toolbar.inflateMenu(R.menu.menu_characters)
         }
 
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        toolbar.setNavigationOnClickListener {
-            finish()
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_select_folder -> { openFolderPicker(); true }
+                R.id.action_favs -> {
+                    showingFavs = !showingFavs
+                    isSearching = false // reset search state when toggling favs
+                    jsonAdapter.filteredItems = if (showingFavs) {
+                        jsonAdapter.items.filter { sharedInfo.isFavorite(it.name) }.toMutableList()
+                    } else {
+                        // back to paged view: reset pages and show first page again
+                        currentPage = 0
+                        mutableListOf<JsonItem>().apply {
+                            addAll(pagedSlice(jsonAdapter.items, currentPage, pageSize))
+                        }
+                    }
+                    jsonAdapter.notifyDataSetChanged()
+                    true
+                }
+                R.id.action_search -> {
+                    val sv = item.actionView as androidx.appcompat.widget.SearchView
+                    sv.queryHint = "Search by Name or Notes"
+                    sv.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?) = true
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            val q = newText?.trim().orEmpty()
+                            isSearching = q.isNotEmpty()
+                            // Search ACROSS ALL ITEMS
+                            jsonAdapter.filteredItems = if (q.isEmpty()) {
+                                // back to paged view
+                                showingFavs = false
+                                currentPage = 0
+                                mutableListOf<JsonItem>().apply {
+                                    addAll(pagedSlice(jsonAdapter.items, currentPage, pageSize))
+                                }
+                            } else {
+                                jsonAdapter.items.filter {
+                                    it.name.contains(q, true) ||
+                                            it.description.contains(q, true) ||
+                                            it.tags.any { t -> t.contains(q, true) }
+                                }.toMutableList()
+                            }
+                            jsonAdapter.notifyDataSetChanged()
+                            return true
+                        }
+                    })
+                    true
+                }
+                else -> false
+            }
         }
-
-        // Set up the SearchView (correct usage of androidx.appcompat.widget.SearchView)
-        val searchView = findViewById<SearchView>(R.id.searchView)
-
-// Access the search icon view and modify its layout
-        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
-
-// Set the layout parameters to move the icon to the right side
-        val layoutParams = searchIcon.layoutParams as LinearLayout.LayoutParams
-        layoutParams.gravity = Gravity.END // Align the search icon to the right side
-        layoutParams.marginStart = 0      // Remove any margin from the start (left side)
-        layoutParams.marginEnd = 0        // Remove any margin from the end (right side)
-        searchIcon.layoutParams = layoutParams
-
-// Adjust the EditText area to take up the rest of the space
-        val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        val editTextLayoutParams = searchEditText.layoutParams as LinearLayout.LayoutParams
-        editTextLayoutParams.weight = 1f  // Give the EditText as much space as possible
-        searchEditText.layoutParams = editTextLayoutParams
 
 
 
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val totalItemCount = layoutManager.itemCount
-                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-
-                // Check if we need to load the next page
-                if (lastVisibleItem >= totalItemCount - 1) {
-                    // Defer the data update
-                    recyclerView.post {
-                        loadNextPage()
-                    }
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(rv, dx, dy)
+                if (isSearching || showingFavs) return // NEW: don't paginate during these modes
+                val lm = recyclerView.layoutManager as GridLayoutManager
+                if (lm.findLastVisibleItemPosition() >= lm.itemCount - 1) {
+                    recyclerView.post { loadNextPage() }
                 }
             }
         })
 
 
 
-// Set up the SearchView listener for query text change
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return true
-            }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                jsonAdapter.filteredItems = if (newText.isNullOrEmpty()) {
-                    jsonAdapter.items // Show all items if the query is empty
-                } else {
-                    jsonAdapter.items.filter { jsonItem ->
-                        jsonItem.name.contains(newText, ignoreCase = true) ||
-                                jsonItem.description.contains(newText, ignoreCase = true) ||
-                                jsonItem.tags.any { tag -> tag.contains(newText, ignoreCase = true) }
-                    }.toMutableList()
-                }
-
-                jsonAdapter.notifyDataSetChanged() // Notify the adapter to refresh
-                return true
-            }
-        })
-
-
-
-
-
-
-        // Load from SharedPreferences
+        // Load previously picked folder (if permission is still valid)
         val savedUriString = getSharedPreferences("AppPreferences", MODE_PRIVATE)
             .getString("selectedFolderUri", null)
 
         savedUriString?.let {
             val savedUri = Uri.parse(it)
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
+            val hasPermission = contentResolver.persistedUriPermissions.any { p ->
+                p.uri == savedUri && p.isReadPermission
+            }
+            if (hasPermission) {
+                lifecycleScope.launch {
                     val items = loadJsonItemsFromFolderInBackground(savedUri)
-                    withContext(Dispatchers.Main) {
-                        jsonItems.clear()
-                        jsonItems.addAll(items)
-                        currentPage = 0
-                        loadNextPage()
+                    jsonItems.clear()
+                    jsonItems.addAll(items)
+                    currentPage = 0
+                    loadNextPage()
+                }
+            } else {
+                getSharedPreferences("AppPreferences", MODE_PRIVATE)
+                    .edit().remove("selectedFolderUri").apply()
+            }
+        }
+    }
+
+    // --- Background loader (add to JsonPreviewActivity) ---
+    private suspend fun loadJsonItemsFromFolderInBackground(folderUri: android.net.Uri): List<JsonItem> =
+        withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val childrenUri = android.provider.DocumentsContract.buildChildDocumentsUriUsingTree(
+                folderUri, android.provider.DocumentsContract.getTreeDocumentId(folderUri)
+            )
+            val results = mutableListOf<Pair<Long, JsonItem>>()
+
+            contentResolver.query(
+                childrenUri,
+                arrayOf(
+                    android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                    android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                    android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED
+                ),
+                null, null, null
+            )?.use { cursor ->
+                val idxId = cursor.getColumnIndexOrThrow(android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                val idxName = cursor.getColumnIndexOrThrow(android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                val idxMod = cursor.getColumnIndexOrThrow(android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+
+                while (cursor.moveToNext()) {
+                    val documentId = cursor.getString(idxId)
+                    val documentName = cursor.getString(idxName)
+                    val lastModified = cursor.getLong(idxMod)
+                    val docUri = android.provider.DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId)
+
+                    if (documentName.endsWith(".json", ignoreCase = true)) {
+                        val jsonContent = contentResolver.openInputStream(docUri)?.use { it.bufferedReader().readText() } ?: ""
+                        // parseJsonToItem: use your existing parser for JsonItem
+                        val item = parseJsonToItem(jsonContent, documentName)
+                        results += lastModified to item
                     }
                 }
             }
+            results.sortedByDescending { it.first }.map { it.second }
         }
-    }
-
-    private fun loadJsonItemsFromFolderInBackground(folderUri: Uri): List<JsonItem> {
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-            folderUri, DocumentsContract.getTreeDocumentId(folderUri)
-        )
-
-        val fileInfoList = mutableListOf<Pair<Long, JsonItem>>()
-
-        contentResolver.query(
-            childrenUri,
-            arrayOf(
-                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                DocumentsContract.Document.COLUMN_LAST_MODIFIED
-            ),
-            null, null, null
-        )?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val documentId = cursor.getString(0)
-                val documentName = cursor.getString(1)
-                val lastModified = cursor.getLong(2)
-                val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId)
-
-                if (documentName.endsWith(".json")) {
-                    val jsonContent = readTextFromUri(documentUri)
-                    val jsonItem = parseJsonToItem(jsonContent, documentName)
-                    fileInfoList.add(Pair(lastModified, jsonItem))
-                }
-            }
-        }
-
-        fileInfoList.sortByDescending { it.first }
-        return fileInfoList.map { it.second }
-    }
-
-
 
 
     private fun openFolderPicker() {
@@ -193,10 +204,10 @@ class JsonPreviewActivity : AppCompatActivity() {
     }
 
     private fun saveFolderUri(uri: Uri) {
-        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("selectedFolderUri", uri.toString()) // Save URI as string
-        editor.apply()
+        getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            .edit()
+            .putString("selectedFolderUri", uri.toString())
+            .apply()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -204,131 +215,142 @@ class JsonPreviewActivity : AppCompatActivity() {
         if (requestCode == REQUEST_CODE_OPEN_DIRECTORY && resultCode == RESULT_OK) {
             data?.data?.let { uri ->
                 contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                saveFolderUri(uri)  // Save the selected folder URI
+                saveFolderUri(uri)
                 loadJsonFilesFromFolder(uri)
             }
         }
     }
 
-    private var currentPage = 0
-    private val pageSize = 300
-
     private fun loadJsonFilesFromFolder(folderUri: Uri) {
-        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-            folderUri,
-            DocumentsContract.getTreeDocumentId(folderUri)
-        )
+        lifecycleScope.launch {
+            val items = loadJsonItemsFromFolderInBackground(folderUri) // PRELOAD ALL
+            jsonItems.clear()
+            jsonItems.addAll(items)
+            currentPage = 0
+            loadNextPage()
+        }
+    }
 
-        val fileInfoList = mutableListOf<Pair<Long, JsonItem>>()
+    private fun pagedSlice(all: List<JsonItem>, page: Int, size: Int): List<JsonItem> {
+        val start = page * size
+        if (start >= all.size) return emptyList()
+        val end = (start + size).coerceAtMost(all.size)
+        return all.subList(start, end)
+    }
 
-        contentResolver.query(
-            childrenUri,
-            arrayOf(
-                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                DocumentsContract.Document.COLUMN_LAST_MODIFIED
-            ),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-            while (cursor.moveToNext()) {
-                val documentId = cursor.getString(0)
-                val documentName = cursor.getString(1)
-                val lastModified = cursor.getLong(2)
-                val documentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId)
 
-                if (documentName.endsWith(".json")) {
-                    val jsonContent = readTextFromUri(documentUri)
-                    val jsonItem = parseJsonToItem(jsonContent, documentName)
-                    fileInfoList.add(Pair(lastModified, jsonItem))
+
+
+    private fun ensureAdapter() {
+        if (::jsonAdapter.isInitialized) return
+
+        jsonAdapter = JsonAdapter { jsonItem ->
+            val view = layoutInflater.inflate(R.layout.dialog_item_preview, null)
+
+            val imageView = view.findViewById<ImageView>(R.id.imageView)
+            val textViewName = view.findViewById<TextView>(R.id.textViewName)
+            val textViewCreatorNotes = view.findViewById<TextView>(R.id.textViewCreatorNotes)
+            val buttonViewDetails = view.findViewById<android.widget.Button>(R.id.buttonViewDetails)
+            val buttonReturnJson = view.findViewById<android.widget.Button>(R.id.buttonReturnJson)
+            val backButton = view.findViewById<ImageButton>(R.id.buttonBack)
+            val favButton = view.findViewById<ImageButton>(R.id.buttonFavorite)
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .create()
+
+            textViewName.text = jsonItem.name
+            textViewCreatorNotes.text = jsonItem.creatorNotes
+            if (jsonItem.imageUrl.isNotEmpty()) {
+                Picasso.get().load(jsonItem.imageUrl).into(imageView)
+            } else {
+                imageView.setImageResource(R.drawable.placeholder)
+            }
+
+            updateFavoriteIcon(favButton, jsonItem.name)
+            favButton.setOnClickListener {
+                if (sharedInfo.isFavorite(jsonItem.name)) {
+                    sharedInfo.removeFavorite(jsonItem.name)
+                    Toast.makeText(this, "${jsonItem.name} removed from favorites", Toast.LENGTH_SHORT).show()
+                } else {
+                    sharedInfo.addFavorite(jsonItem.name)
+                    Toast.makeText(this, "${jsonItem.name} added to favorites", Toast.LENGTH_SHORT).show()
                 }
+                updateFavoriteIcon(favButton, jsonItem.name)
+            }
+
+            buttonViewDetails.setOnClickListener {
+                val intent = Intent(this, DetailsActivity::class.java)
+                intent.putExtra("name", jsonItem.name)
+                intent.putExtra("description", jsonItem.description)
+                intent.putExtra("jsonObject", jsonItem.jsonObject)
+                startActivity(intent)
+            }
+
+            buttonReturnJson.setOnClickListener {
+                val resultIntent = Intent()
+                resultIntent.putExtra("selectedJson", jsonItem.jsonObject)
+                resultIntent.putExtra("characterName", jsonItem.name)
+                setResult(RESULT_OK, resultIntent)
+                dialog.dismiss()
+                finish()
+            }
+
+            backButton.setOnClickListener { dialog.dismiss() }
+
+            dialog.show()
+        }
+
+        recyclerView.adapter = jsonAdapter
+    }
+
+
+
+    private suspend fun loadPageContent(fileInfoList: List<Pair<Long, Uri>>, page: Int) {
+        val startIndex = page * pageSize
+        if (startIndex >= fileInfoList.size) return
+        val endIndex = (startIndex + pageSize).coerceAtMost(fileInfoList.size)
+
+        val pageFiles = fileInfoList.subList(startIndex, endIndex)
+
+        val itemsOnPage = withContext(Dispatchers.IO) {
+            pageFiles.map { (_, uri) ->
+                val jsonContent = readTextFromUri(uri)
+                parseJsonToItem(jsonContent, uri.lastPathSegment ?: "Unknown.json")
             }
         }
 
-        fileInfoList.sortByDescending { it.first } // Sort by last modified
-        val sortedJsonItems = fileInfoList.map { it.second }
+        jsonItems.addAll(itemsOnPage)
 
-        jsonItems.clear()
-        jsonItems.addAll(sortedJsonItems)
+        ensureAdapter()
+        if (page == 0) {
+            jsonAdapter.updateItems(jsonItems)
+        } else {
+            jsonAdapter.addItems(itemsOnPage)
+        }
+        currentPage++
 
-        loadNextPage() // Load the first page
     }
 
     private fun loadNextPage() {
-        val startIndex = currentPage * pageSize
-        if (startIndex >= jsonItems.size) return // No more items to load
+        val pageItems = pagedSlice(jsonItems, currentPage, pageSize)
+        if (pageItems.isEmpty()) return
 
-        val endIndex = (startIndex + pageSize).coerceAtMost(jsonItems.size)
-        val pageItems = jsonItems.subList(startIndex, endIndex)
+        ensureAdapter()
 
         if (currentPage == 0) {
-            // Initialize adapter and set the data for the first page
-            jsonAdapter = JsonAdapter { jsonItem ->
-                // Create and show the preview dialog
-                val builder = AlertDialog.Builder(this)
-                val view = layoutInflater.inflate(R.layout.dialog_item_preview, null)
-
-                // Set the views in the dialog
-                val imageView = view.findViewById<ImageView>(R.id.imageView)
-                val textViewName = view.findViewById<TextView>(R.id.textViewName)
-                val textViewCreatorNotes = view.findViewById<TextView>(R.id.textViewCreatorNotes)
-                val buttonViewDetails = view.findViewById<Button>(R.id.buttonViewDetails)
-                val buttonReturnJson = view.findViewById<Button>(R.id.buttonReturnJson)
-                val backButton = view.findViewById<ImageButton>(R.id.buttonBack)
-
-                // Set the data for the dialog
-                textViewName.text = jsonItem.name
-                textViewCreatorNotes.text = jsonItem.creatorNotes
-
-                // Load the image using Picasso
-                Picasso.get()
-                    .load(jsonItem.imageUrl) // image URL from the item
-                    .into(imageView)
-
-                // Set an action for the "View Details" button
-                buttonViewDetails.setOnClickListener {
-                    val intent = Intent(this, DetailsActivity::class.java)
-                    intent.putExtra("name", jsonItem.name)
-                    intent.putExtra("description", jsonItem.description)
-                    intent.putExtra("jsonObject", jsonItem.jsonObject)
-                    startActivity(intent)
-                }
-
-                // Set an action for the "Return JSON" button
-                buttonReturnJson.setOnClickListener {
-                    val resultIntent = Intent()
-                    resultIntent.putExtra("selectedJson", jsonItem.jsonObject)
-                    resultIntent.putExtra("characterName", jsonItem.name)
-                    setResult(Activity.RESULT_OK, resultIntent)
-                    finish() // Close the dialog and return to previous activity
-                }
-
-                backButton.setOnClickListener {
-                    builder.create().dismiss() // Dismiss the dialog
-                }
-
-                // Create the dialog instance and show it
-                val dialog = builder.setView(view)
-                    .setCancelable(true) // Allows closing by tapping outside the dialog
-                    .create()
-
-                dialog.show()
-            }
-            recyclerView.adapter = jsonAdapter
-            jsonAdapter.updateItems(pageItems) // Pass the first page's data to the adapter
+            // 1) Tell adapter the FULL dataset so search sees everything
+            jsonAdapter.setAllItems(jsonItems)
+            // 2) Show only the first page
+            jsonAdapter.filteredItems = pageItems.toMutableList()
+            jsonAdapter.notifyDataSetChanged()
         } else {
-            // Add items to existing adapter for subsequent pages
-            Log.d("Loading", "Loading next page")
-            jsonAdapter.addItems(pageItems)
+            // append visible page
+            jsonAdapter.showNextPage(pageItems)
         }
-
         currentPage++
     }
-
-
-
-
 
 
     private fun readTextFromUri(uri: Uri): String {
@@ -337,26 +359,21 @@ class JsonPreviewActivity : AppCompatActivity() {
     }
 
     private fun parseJsonToItem(json: String, jsonName: String): JsonItem {
-        try {
+        return try {
             val jsonObject = JSONObject(json)
             val dataObject = jsonObject.getJSONObject("data")
             val description = dataObject.optString("description", "No description available")
             val creatorNotes = dataObject.optString("creator_notes", "No creator notes available")
-            val imageUrl = dataObject.optString("avatar", "No image URL available")
+            val imageUrl = dataObject.optString("avatar", "")
             val name = dataObject.optString("name", jsonName)
             val tagsArray = dataObject.optJSONArray("tags")
 
-
             val tags = mutableListOf<String>()
-
             if (tagsArray != null) {
-                for (i in 0 until tagsArray.length()) {
-                    tags.add(tagsArray.optString(i, ""))  // Add each tag to the list
-                }
+                for (i in 0 until tagsArray.length()) tags.add(tagsArray.optString(i, ""))
             }
 
-            Log.v("tags", tagsArray.toString())
-            return JsonItem(
+            JsonItem(
                 name = name,
                 description = description,
                 imageUrl = imageUrl,
@@ -365,8 +382,7 @@ class JsonPreviewActivity : AppCompatActivity() {
                 tags = tags
             )
         } catch (e: Exception) {
-            e.printStackTrace()
-            return JsonItem(
+            JsonItem(
                 name = jsonName,
                 description = "Invalid JSON format",
                 imageUrl = "",
@@ -375,5 +391,13 @@ class JsonPreviewActivity : AppCompatActivity() {
                 tags = listOf("")
             )
         }
+    }
+}
+
+fun updateFavoriteIcon(button: ImageButton, name: String) {
+    if (sharedInfo.isFavorite(name)) {
+        button.setImageResource(R.drawable.ic_star_filled)
+    } else {
+        button.setImageResource(R.drawable.ic_star_outline)
     }
 }
