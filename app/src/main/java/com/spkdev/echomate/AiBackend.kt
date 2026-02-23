@@ -11,6 +11,7 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import com.spkdev.echomate.BuildConfig
 
 class AIBackend {
 
@@ -33,8 +34,7 @@ class AIBackend {
             mapOf("role" to "system", "content" to setupString)
         )
 
-        private const val apiKey: String =
-            "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"
+        private val apiKey = BuildConfig.MY_API_KEY
         private var requestUrl = "https://openrouter.ai/api/v1/chat/completions"
 
         private var context = 0

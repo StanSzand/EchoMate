@@ -15,7 +15,7 @@
         <item>z-ai/glm-4.7</item>
         <item>qwen/qwen3-30b-a3b</item>
         <item>deepseek/deepseek-r1</item>
-        <item>writer/palmyra-x5</item>
+        <item>z-ai/glm-5:nitro</item>
     </string-array>
     <string-array name="effort">
         <item>none</item>

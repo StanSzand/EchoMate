@@ -20,10 +20,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        val apiKey = project.findProperty("MY_API_KEY") as String? ?: ""
+
         buildConfigField(
             "String",
-            "openRouterApi",
-            "\"${project.findProperty("openRouterApi")}\""
+            "MY_API_KEY",
+            "\"$apiKey\""
         )
         vectorDrawables {
             useSupportLibrary = true
