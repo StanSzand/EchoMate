@@ -204,19 +204,52 @@ class MainActivity : ComponentActivity() {
                     requestTextField.text.clear()
                     Toast.makeText(this, "topP set", Toast.LENGTH_SHORT).show()
                 } else if (messageText == "") {
-                    Toast.makeText(this, "Letting AI continue", Toast.LENGTH_SHORT).show()
-                    AIBackend.getResponse(this, "*continue*") { response ->
-                        runOnUiThread {
-                            if (response == "error") {
-                                Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
-                                addMessage(ChatMessage("ERROR - please try again", false))
-                                AIBackend.removeEntry()
-                            } else {
-                                if (isForeground) {
-                                    addMessage(ChatMessage(response, false))
+                    val imageUri = pendingImageForMessageUri
+                    if (imageUri != null) {
+                        val imageDataUrl = runCatching { buildImageDataUrl(imageUri) }
+                            .onFailure {
+                                Toast.makeText(this, "Couldn't attach image.", Toast.LENGTH_SHORT).show()
+                                Log.e("IMAGE_ATTACH", "Failed to encode image", it)
+                            }
+                            .getOrNull()
+
+                        if (imageDataUrl != null) {
+                            Toast.makeText(this, "Sending image", Toast.LENGTH_SHORT).show()
+                            addMessage(ChatMessage("", true, imageUri.toString()))
+                            requestTextField.text.clear()
+                            pendingImageForMessageUri = null
+
+                            AIBackend.getResponse(this, "", imageDataUrl) { response ->
+                                runOnUiThread {
+                                    if (response == "error") {
+                                        Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
+                                        addMessage(ChatMessage("ERROR - please try again", false))
+                                        AIBackend.removeEntry()
+                                    } else {
+                                        if (isForeground) {
+                                            addMessage(ChatMessage(response, false))
+                                        } else {
+                                            savePendingAssistantReply(response)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "Letting AI continue", Toast.LENGTH_SHORT).show()
+                        AIBackend.getResponse(this, "*continue*") { response ->
+                            runOnUiThread {
+                                if (response == "error") {
+                                    Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
+                                    addMessage(ChatMessage("ERROR - please try again", false))
+                                    AIBackend.removeEntry()
                                 } else {
-                                    // App is backgrounded: buffer it to disk and show on return
-                                    savePendingAssistantReply(response)
+                                    if (isForeground) {
+                                        addMessage(ChatMessage(response, false))
+                                    } else {
+                                        // App is backgrounded: buffer it to disk and show on return
+                                        savePendingAssistantReply(response)
+                                    }
                                 }
                             }
                         }
@@ -390,7 +423,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Toast.makeText(this, "Sending", Toast.LENGTH_SHORT).show()
-                    addMessage(ChatMessage(messageText, true))
+                    addMessage(ChatMessage(messageText, true, imageUri?.toString()))
                     requestTextField.text.clear()
                     pendingImageForMessageUri = null
 
@@ -572,6 +605,7 @@ class MainActivity : ComponentActivity() {
                             val jsonMessage = JSONObject()
                             jsonMessage.put("message", message.message)
                             jsonMessage.put("isSentByCurrentUser", message.isSentByCurrentUser)
+                            jsonMessage.put("imageUri", message.imageUri)
                             jsonArray.put(jsonMessage)
                         }
                         writer.write(jsonArray.toString())
@@ -608,9 +642,14 @@ class MainActivity : ComponentActivity() {
 
                     for (i in 0 until jsonArray.length()) {
                         val jsonMessage = jsonArray.getJSONObject(i)
+                        val savedImageUri = jsonMessage.opt("imageUri")
+                            ?.takeIf { it != JSONObject.NULL }
+                            ?.toString()
+
                         val message = ChatMessage(
                             jsonMessage.getString("message"),
-                            jsonMessage.getBoolean("isSentByCurrentUser")
+                            jsonMessage.getBoolean("isSentByCurrentUser"),
+                            savedImageUri
                         )
                         messages.add(message)
                         AIBackend.addEntry(
