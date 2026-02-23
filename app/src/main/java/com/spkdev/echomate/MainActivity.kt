@@ -12,7 +12,9 @@ import android.app.PendingIntent
 import android.os.Build
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -20,6 +22,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +62,9 @@ class MainActivity : ComponentActivity() {
     // Remember what we last tried (for "save")
     private var lastTriedJson: String? = null
 
+    private var pendingImageForMessageUri: Uri? = null
+
+
     // Track the currently applied character + prompt (so we can snapshot/restore)
     private var currentCharacterJson: String? = null
     private var currentAvatarUrl: String? = null
@@ -85,6 +91,7 @@ class MainActivity : ComponentActivity() {
 
         val requestTextField = findViewById<EditText>(R.id.textInput)
         val sendRequestButton = findViewById<ImageButton>(R.id.sendRequest)
+        val attachImageButton = findViewById<ImageButton>(R.id.attachImage)
         val settingsButton = findViewById<ImageButton>(R.id.openOptions)
         val wipeButton = findViewById<ImageButton>(R.id.resetScreen)
         val rerollButton = findViewById<ImageButton>(R.id.rerollButton)
@@ -372,11 +379,22 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }else {
+                    val imageUri = pendingImageForMessageUri
+                    val imageDataUrl = imageUri?.let { uri ->
+                        runCatching { buildImageDataUrl(uri) }
+                            .onFailure {
+                                Toast.makeText(this, "Couldn't attach image. Sending text only.", Toast.LENGTH_SHORT).show()
+                                Log.e("IMAGE_ATTACH", "Failed to encode image", it)
+                            }
+                            .getOrNull()
+                    }
+
                     Toast.makeText(this, "Sending", Toast.LENGTH_SHORT).show()
                     addMessage(ChatMessage(messageText, true))
                     requestTextField.text.clear()
+                    pendingImageForMessageUri = null
 
-                    AIBackend.getResponse(this, messageText) { response ->
+                    val responseCallback: (String) -> Unit = { response ->
                         if (response == "error") {
                             runOnUiThread {
                                 Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
@@ -394,8 +412,18 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+
+                    if (imageDataUrl != null) {
+                        AIBackend.getResponse(this, messageText, imageDataUrl, responseCallback)
+                    } else {
+                        AIBackend.getResponse(this, messageText, responseCallback)
+                    }
                 }
             }
+        }
+
+        attachImageButton.setOnClickListener {
+            imagePickerLauncher.launch("image/*")
         }
 
         settingsButton.setOnClickListener {
@@ -838,6 +866,20 @@ class MainActivity : ComponentActivity() {
 
 
 
+    private fun buildImageDataUrl(uri: Uri): String {
+        val mimeType = contentResolver.getType(uri)
+            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                MimeTypeMap.getFileExtensionFromUrl(uri.toString())
+            )
+            ?: "image/jpeg"
+
+        val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: throw IOException("Unable to read selected image")
+
+        val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+        return "data:$mimeType;base64,$base64"
+    }
+
     override fun onDestroy() {
         // Clean up any typing collectors/watchers to avoid leaks and stacked work:
         inputJob?.cancel()
@@ -856,6 +898,15 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         isForeground = false
         super.onStop()
+    }
+
+    private val imagePickerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        pendingImageForMessageUri = uri
+        if (uri != null) {
+            Toast.makeText(this, "Image attached. Type a message and send.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private val createFileLauncher = registerForActivityResult(

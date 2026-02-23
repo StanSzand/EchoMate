@@ -350,6 +350,98 @@ class AIBackend {
             getResponse(appCtx, question, callback)
         }
 
+        fun getResponse(context: Context?, question: String, imageDataUrl: String, callback: (String) -> Unit) {
+            setHistoryLore(context, question)
+
+            if (localModel) {
+                getResponse(context, question, callback)
+                return
+            }
+
+            addEntry("user", question)
+            val jsonArray = JSONArray()
+            for (entry in historyAI) {
+                val role = entry["role"] ?: continue
+                val content = entry["content"] ?: ""
+                val messageObject = JSONObject().apply {
+                    put("role", role)
+                    put("content", content)
+                }
+                jsonArray.put(messageObject)
+            }
+
+            val lastIndex = jsonArray.length() - 1
+            if (lastIndex >= 0) {
+                val lastMessage = jsonArray.getJSONObject(lastIndex)
+                if (lastMessage.optString("role") == "user") {
+                    val textContent = lastMessage.optString("content")
+                    val multimodalContent = JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("type", "text")
+                            put("text", textContent)
+                        })
+                        put(JSONObject().apply {
+                            put("type", "image_url")
+                            put("image_url", JSONObject().apply {
+                                put("url", imageDataUrl)
+                            })
+                        })
+                    }
+                    lastMessage.put("content", multimodalContent)
+                }
+            }
+
+            val jsonBody = JSONObject().apply {
+                put("model", modelUsed)
+                put("messages", jsonArray)
+                put("temperature", temperature)
+                put("repetition_penalty", 1.1)
+                put("max_tokens", 512 * 8)
+                put("top_p", topP)
+                put("reasoning", JSONObject().apply {
+                    put("enabled", reasoningEnabled)
+                    put("effort", effortValue)
+                    put("exclude", false)
+                })
+            }
+
+            val requestBody = jsonBody.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+            val request = Request.Builder()
+                .url(requestUrl)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build()
+
+            Log.v("REQUEST", jsonBody.toString())
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.e("AIBackend", "OpenRouter multimodal fail", e)
+                    callback("error")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body?.string() ?: return callback("error")
+                    val jsonString = body.trim()
+                    val jsonObject = JSONObject(JSONTokener(jsonString))
+                    Log.v("RESPONSE", jsonObject.toString())
+                    if (jsonObject.toString().startsWith("{\"error\"")) {
+                        Log.e("AIBackend", "OpenRouter multimodal error: $jsonObject")
+                        callback("error")
+                    } else {
+                        val content = jsonObject
+                            .getJSONArray("choices").getJSONObject(0)
+                            .getJSONObject("message").getString("content").trim()
+                        addEntry("assistant", content.replace("\"", "'"))
+                        lastMessage = content
+                        callback(content)
+                    }
+                }
+            })
+        }
+
         // New signature allowing explicit Context
         fun getResponse(context: Context?, question: String, callback: (String) -> Unit) {
             // weave lore only if we have a context (for ContentResolver) and a valid lore path
@@ -375,6 +467,7 @@ class AIBackend {
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         Log.e("AIBackend", "Local model fail", e)
+                        callback("error")
                     }
 
                     override fun onResponse(call: Call, response: Response) {
@@ -427,6 +520,7 @@ class AIBackend {
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         Log.e("AIBackend", "OpenRouter fail", e)
+                        callback("error")
                     }
 
                     override fun onResponse(call: Call, response: Response) {
