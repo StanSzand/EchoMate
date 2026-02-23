@@ -12,7 +12,9 @@ import android.app.PendingIntent
 import android.os.Build
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -20,6 +22,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +62,9 @@ class MainActivity : ComponentActivity() {
     // Remember what we last tried (for "save")
     private var lastTriedJson: String? = null
 
+    private val pendingImageForMessageUris = mutableListOf<Uri>()
+
+
     // Track the currently applied character + prompt (so we can snapshot/restore)
     private var currentCharacterJson: String? = null
     private var currentAvatarUrl: String? = null
@@ -85,6 +91,7 @@ class MainActivity : ComponentActivity() {
 
         val requestTextField = findViewById<EditText>(R.id.textInput)
         val sendRequestButton = findViewById<ImageButton>(R.id.sendRequest)
+        val attachImageButton = findViewById<ImageButton>(R.id.attachImage)
         val settingsButton = findViewById<ImageButton>(R.id.openOptions)
         val wipeButton = findViewById<ImageButton>(R.id.resetScreen)
         val rerollButton = findViewById<ImageButton>(R.id.rerollButton)
@@ -197,19 +204,46 @@ class MainActivity : ComponentActivity() {
                     requestTextField.text.clear()
                     Toast.makeText(this, "topP set", Toast.LENGTH_SHORT).show()
                 } else if (messageText == "") {
-                    Toast.makeText(this, "Letting AI continue", Toast.LENGTH_SHORT).show()
-                    AIBackend.getResponse(this, "*continue*") { response ->
-                        runOnUiThread {
-                            if (response == "error") {
-                                Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
-                                addMessage(ChatMessage("ERROR - please try again", false))
-                                AIBackend.removeEntry()
-                            } else {
-                                if (isForeground) {
-                                    addMessage(ChatMessage(response, false))
+                    val imageUris = pendingImageForMessageUris.toList()
+                    if (imageUris.isNotEmpty()) {
+                        val imageDataUrls = buildImageDataUrls(imageUris)
+                        if (imageDataUrls.isNotEmpty()) {
+                            Toast.makeText(this, "Sending ${imageDataUrls.size} image(s)", Toast.LENGTH_SHORT).show()
+                            addMessage(ChatMessage("", true, imageUris.map { it.toString() }))
+                            requestTextField.text.clear()
+                            pendingImageForMessageUris.clear()
+
+                            AIBackend.getResponse(this, "", imageDataUrls) { response ->
+                                runOnUiThread {
+                                    if (response == "error") {
+                                        Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
+                                        addMessage(ChatMessage("ERROR - please try again", false))
+                                        AIBackend.removeEntry()
+                                    } else {
+                                        if (isForeground) {
+                                            addMessage(ChatMessage(response, false))
+                                        } else {
+                                            savePendingAssistantReply(response)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "Letting AI continue", Toast.LENGTH_SHORT).show()
+                        AIBackend.getResponse(this, "*continue*") { response ->
+                            runOnUiThread {
+                                if (response == "error") {
+                                    Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
+                                    addMessage(ChatMessage("ERROR - please try again", false))
+                                    AIBackend.removeEntry()
                                 } else {
-                                    // App is backgrounded: buffer it to disk and show on return
-                                    savePendingAssistantReply(response)
+                                    if (isForeground) {
+                                        addMessage(ChatMessage(response, false))
+                                    } else {
+                                        // App is backgrounded: buffer it to disk and show on return
+                                        savePendingAssistantReply(response)
+                                    }
                                 }
                             }
                         }
@@ -372,11 +406,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }else {
-                    Toast.makeText(this, "Sending", Toast.LENGTH_SHORT).show()
-                    addMessage(ChatMessage(messageText, true))
-                    requestTextField.text.clear()
+                    val imageUris = pendingImageForMessageUris.toList()
+                    val imageDataUrls = buildImageDataUrls(imageUris)
 
-                    AIBackend.getResponse(this, messageText) { response ->
+                    Toast.makeText(this, "Sending", Toast.LENGTH_SHORT).show()
+                    addMessage(ChatMessage(messageText, true, imageUris.map { it.toString() }))
+                    requestTextField.text.clear()
+                    pendingImageForMessageUris.clear()
+
+                    val responseCallback: (String) -> Unit = { response ->
                         if (response == "error") {
                             runOnUiThread {
                                 Toast.makeText(this, "The request failed", Toast.LENGTH_LONG).show()
@@ -394,8 +432,18 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+
+                    if (imageDataUrls.isNotEmpty()) {
+                        AIBackend.getResponse(this, messageText, imageDataUrls, responseCallback)
+                    } else {
+                        AIBackend.getResponse(this, messageText, responseCallback)
+                    }
                 }
             }
+        }
+
+        attachImageButton.setOnClickListener {
+            imagePickerLauncher.launch("image/*")
         }
 
         settingsButton.setOnClickListener {
@@ -544,6 +592,7 @@ class MainActivity : ComponentActivity() {
                             val jsonMessage = JSONObject()
                             jsonMessage.put("message", message.message)
                             jsonMessage.put("isSentByCurrentUser", message.isSentByCurrentUser)
+                            jsonMessage.put("imageUris", JSONArray(message.imageUris))
                             jsonArray.put(jsonMessage)
                         }
                         writer.write(jsonArray.toString())
@@ -580,9 +629,24 @@ class MainActivity : ComponentActivity() {
 
                     for (i in 0 until jsonArray.length()) {
                         val jsonMessage = jsonArray.getJSONObject(i)
+                        val savedImageUris = mutableListOf<String>()
+                        val imageArray = jsonMessage.optJSONArray("imageUris")
+                        if (imageArray != null) {
+                            for (j in 0 until imageArray.length()) {
+                                imageArray.optString(j)?.takeIf { it.isNotBlank() }?.let { savedImageUris.add(it) }
+                            }
+                        } else {
+                            jsonMessage.opt("imageUri")
+                                ?.takeIf { it != JSONObject.NULL }
+                                ?.toString()
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { savedImageUris.add(it) }
+                        }
+
                         val message = ChatMessage(
                             jsonMessage.getString("message"),
-                            jsonMessage.getBoolean("isSentByCurrentUser")
+                            jsonMessage.getBoolean("isSentByCurrentUser"),
+                            savedImageUris
                         )
                         messages.add(message)
                         AIBackend.addEntry(
@@ -838,6 +902,33 @@ class MainActivity : ComponentActivity() {
 
 
 
+    private fun buildImageDataUrl(uri: Uri): String {
+        val mimeType = contentResolver.getType(uri)
+            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                MimeTypeMap.getFileExtensionFromUrl(uri.toString())
+            )
+            ?: "image/jpeg"
+
+        val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: throw IOException("Unable to read selected image")
+
+        val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+        return "data:$mimeType;base64,$base64"
+    }
+
+    private fun buildImageDataUrls(uris: List<Uri>): List<String> {
+        val encoded = mutableListOf<String>()
+        for (uri in uris) {
+            runCatching { buildImageDataUrl(uri) }
+                .onSuccess { encoded.add(it) }
+                .onFailure {
+                    Toast.makeText(this, "Couldn't attach one of the images.", Toast.LENGTH_SHORT).show()
+                    Log.e("IMAGE_ATTACH", "Failed to encode image", it)
+                }
+        }
+        return encoded
+    }
+
     override fun onDestroy() {
         // Clean up any typing collectors/watchers to avoid leaks and stacked work:
         inputJob?.cancel()
@@ -856,6 +947,15 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         isForeground = false
         super.onStop()
+    }
+
+    private val imagePickerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            pendingImageForMessageUris.addAll(uris)
+            Toast.makeText(this, "${uris.size} image(s) attached.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private val createFileLauncher = registerForActivityResult(
