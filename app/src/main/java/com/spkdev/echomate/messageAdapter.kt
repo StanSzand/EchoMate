@@ -1,25 +1,28 @@
 package com.spkdev.echomate
 
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Typeface
-import android.text.Spanned
-import java.util.Locale
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 
 data class ChatMessage(
     val message: String,
-    val isSentByCurrentUser: Boolean
+    val isSentByCurrentUser: Boolean,
+    val imageUri: String? = null
 )
 
 
@@ -42,6 +45,8 @@ class ChatAdapter(
         val rightChatLayout: LinearLayout = itemView.findViewById(R.id.right_chat_layout)
         val leftChatTextView: TextView = itemView.findViewById(R.id.left_chat_textview)
         val rightChatTextView: TextView = itemView.findViewById(R.id.right_chat_textview)
+        val leftChatImageView: ImageView = itemView.findViewById(R.id.left_chat_imageview)
+        val rightChatImageView: ImageView = itemView.findViewById(R.id.right_chat_imageview)
     }
 
     // Helper: only set spans on non-empty ranges
@@ -65,7 +70,7 @@ class ChatAdapter(
             minLines = 2; maxLines = 6
         }
 
-        android.app.AlertDialog.Builder(ctx)
+        AlertDialog.Builder(ctx)
             .setTitle("Edit message")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
@@ -76,6 +81,34 @@ class ChatAdapter(
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun bindImagePreview(imageView: ImageView, imageUri: String?) {
+        if (imageUri.isNullOrBlank()) {
+            imageView.visibility = View.GONE
+            imageView.setOnClickListener(null)
+            return
+        }
+
+        imageView.visibility = View.VISIBLE
+        Picasso.get()
+            .load(imageUri)
+            .fit()
+            .centerCrop()
+            .into(imageView)
+
+        imageView.setOnClickListener {
+            val fullImage = ImageView(it.context).apply {
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                Picasso.get().load(imageUri).into(this)
+            }
+
+            AlertDialog.Builder(it.context)
+                .setView(fullImage)
+                .setPositiveButton("Close", null)
+                .show()
+        }
     }
 
     fun formatText(input: String, context: Context): CharSequence {
@@ -123,12 +156,6 @@ class ChatAdapter(
     }
 
 
-
-
-
-
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.chat_message_recycler, parent, false)
@@ -143,6 +170,8 @@ class ChatAdapter(
             holder.rightChatLayout.visibility = View.VISIBLE
             holder.leftChatLayout.visibility = View.GONE
             holder.rightChatTextView.text = styled
+            holder.rightChatTextView.visibility = if (message.message.isBlank()) View.GONE else View.VISIBLE
+            bindImagePreview(holder.rightChatImageView, message.imageUri)
 
             holder.rightChatTextView.setOnLongClickListener {
                 val pos = holder.bindingAdapterPosition
@@ -153,6 +182,8 @@ class ChatAdapter(
             holder.leftChatLayout.visibility = View.VISIBLE
             holder.rightChatLayout.visibility = View.GONE
             holder.leftChatTextView.text = styled
+            holder.leftChatTextView.visibility = if (message.message.isBlank()) View.GONE else View.VISIBLE
+            bindImagePreview(holder.leftChatImageView, message.imageUri)
 
             holder.leftChatTextView.setOnLongClickListener {
                 val pos = holder.bindingAdapterPosition
